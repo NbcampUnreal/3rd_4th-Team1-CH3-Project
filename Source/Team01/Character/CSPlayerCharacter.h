@@ -44,12 +44,15 @@ private:
 	void StartCrouch(const FInputActionValue& InValue);
 	void StopCrouch(const FInputActionValue& InValue);
 
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCSInputConfig> PlayerCharacterInputConfig;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputMappingContext> PlayerCharacterInputMappingContext;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsCrouching : 1;
 
 #pragma endregion
 

@@ -15,7 +15,6 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	
 	float CharacterHalfHeight = 110.f;
 	float CharacterRadius = 40.f;
-
 	GetCapsuleComponent()->InitCapsuleSize(CharacterRadius, CharacterHalfHeight);
 
 	FVector PivotPosition(0.f, 0.f, -CharacterHalfHeight);
@@ -24,15 +23,13 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 
 	GetCharacterMovement()->MaxWalkSpeed = 300.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->GravityScale = 1.3f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
-	//GetCharacterMovement()->bCanEverCrouch = true;
-	//GetCharacterMovement()->GetNavAgentProperties()->bCanCrouch = true;
-	GetCharacterMovement()->SetCrouchedHalfHeight(55.0f);
 
+	GetCharacterMovement()->CrouchedHalfHeight = 55.f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 
 #pragma endregion
 
@@ -214,7 +211,6 @@ void ACSPlayerCharacter::StartCrouch(const FInputActionValue& InValue)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Is Crouching!"));
 			Crouch();
-			bIsCrouched = true;
 		}
 	}
 }
@@ -229,10 +225,11 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Is NOT Crouching!"));
 			UnCrouch();
-			bIsCrouched = false;
 		}
 	}
 }
+
+
 
 
 
