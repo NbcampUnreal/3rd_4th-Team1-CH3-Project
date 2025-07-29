@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "CSCharacterBase.h"
 #include "InputActionValue.h"
 #include "CSPlayerCharacter.generated.h"
 
@@ -11,7 +11,7 @@ class UCSInputConfig;
 class UInputMappingContext;
 
 UCLASS()
-class TEAM01_API ACSPlayerCharacter : public ACharacter
+class TEAM01_API ACSPlayerCharacter : public ACSCharacterBase
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ protected:
 private:
 	void InputMove(const FInputActionValue& InValue);
 	void InputLook(const FInputActionValue& InValue);
-	void InputJump(const FInputActionValue& InValue);
+	
 	void StartSprint(const FInputActionValue& InValue);
 	void StopSprint(const FInputActionValue& InValue);
 	void StartCrouch(const FInputActionValue& InValue);
@@ -54,6 +54,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	uint8 bIsCrouching : 1;
 
+#pragma endregion
+
+#pragma region Attack
+
+private:
+	void InputShoot(const FInputActionValue& InValue);
+	void InputReload(const FInputActionValue& InValue);
+
+protected:
+	int32 Bullet;
+	int32 MaxBullet;
+	
 #pragma endregion
 
 };

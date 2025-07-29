@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Input/CSInputConfig.h"
+#include "Animation/CSAnimInstance.h"
 
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
@@ -58,6 +59,13 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	CameraComponent->bUsePawnControlRotation = false;
 	
 #pragma endregion
+
+#pragma region Character Status
+
+	MaxBullet = 6;
+	Bullet = MaxBullet;
+	
+#pragma endregion
 }
 
 void ACSPlayerCharacter::BeginPlay()
@@ -101,7 +109,14 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			PlayerCharacterInputConfig->Jump,
 			ETriggerEvent::Triggered,
 			this,
-			&ThisClass::InputJump
+			&ACharacter::Jump
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Jump,
+			ETriggerEvent::Completed,
+			this,
+			&ACharacter::StopJumping
 		);
 
 		EnhancedInputComponent->BindAction(
@@ -131,6 +146,20 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			this,
 			&ThisClass::StopCrouch
 		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Shoot,
+			ETriggerEvent::Triggered,
+			this,
+			&ThisClass::InputShoot
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Reload,
+			ETriggerEvent::Triggered,
+			this,
+			&ThisClass::InputReload
+		);
 	}
 }
 
@@ -159,19 +188,6 @@ void ACSPlayerCharacter::InputLook(const FInputActionValue& InValue)
 
 		AddControllerYawInput(LookVector.X);
 		AddControllerPitchInput(LookVector.Y);	
-	}
-}
-
-void ACSPlayerCharacter::InputJump(const FInputActionValue& InValue)
-{
-	if (IsValid(GetController()))
-	{
-		bool bShouldJump = InValue.Get<bool>();
-
-		if (bShouldJump)
-		{
-			Jump();
-		}
 	}
 }
 
@@ -209,10 +225,8 @@ void ACSPlayerCharacter::StartCrouch(const FInputActionValue& InValue)
 
 		if (bShouldCrouch)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Is Crouching!"));
 			Crouch();
 			bIsCrouching = true;
-			UE_LOG(LogTemp, Error, TEXT("bIsCrouching: %s"), bIsCrouching ? TEXT("True") : TEXT("False"));
 		}
 	}
 }
@@ -225,10 +239,46 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 
 		if (!bShouldCrouch)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Is NOT Crouching!"));
 			UnCrouch();
 			bIsCrouching = false;
-			UE_LOG(LogTemp, Error, TEXT("bIsCrouching: %s"), bIsCrouching ? TEXT("True") : TEXT("False"));
+		}
+	}
+}
+
+void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
+{
+	if (IsValid(GetController()))
+	{
+		bool bShouldShoot = InValue.Get<bool>();
+
+		if (bShouldShoot)
+		{
+			if (Bullet <= 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("No Ammo"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Shoot"));
+				Bullet--;
+			}
+
+			UCSAnimInstance* AnimInstance = Cast<UCSAnimInstance>(GetMesh()->GetAnimInstance());
+		}
+		
+	}
+}
+
+void ACSPlayerCharacter::InputReload(const FInputActionValue& InValue)
+{
+	if (IsValid(GetController()))
+	{
+		bool bShouldReload = InValue.Get<bool>();
+
+		if (bShouldReload)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Reload"));
+			Bullet = MaxBullet;
 		}
 	}
 }
