@@ -30,19 +30,30 @@ public:
 	UFUNCTION()
 	void HandleOnPostDead();
 
+	UFUNCTION()
 	virtual void BeginAttack();
-
 	UFUNCTION()
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped);
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> ShootMontage;
 
 #pragma endregion
 
 #pragma region Status
 
+public:
+	UFUNCTION(BlueprintCallable)
+	bool GetIsDead() const { return bIsDead; }
+
 protected:
-	bool bIsNowAttacking;
-	bool bIsAttackKeyPressed;
-	bool bIsDead;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsNowAttacking : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsAttackKeyPressed : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsDead : 1;
 	
 #pragma endregion
 	

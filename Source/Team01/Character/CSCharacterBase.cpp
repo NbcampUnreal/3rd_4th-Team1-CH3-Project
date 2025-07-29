@@ -6,6 +6,7 @@
 ACSCharacterBase::ACSCharacterBase()
 {
  	PrimaryActorTick.bCanEverTick = true;
+	
 
 }
 

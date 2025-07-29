@@ -32,7 +32,7 @@ void UCSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bShouldMove = (KINDA_SMALL_NUMBER < GroundSpeed) && !bIsAccelerationNearlyZero;
 		bIsFalling = OwnerCharacterMovement->IsFalling();
 
-		//bIsDead = OwnerCharacter->IsDead();
+		bIsDead = OwnerCharacter->GetIsDead();
 
 		if (APlayerController* OwnerPlayerController =
 			Cast<APlayerController>(OwnerCharacter->GetController()))

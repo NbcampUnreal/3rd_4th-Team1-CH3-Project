@@ -28,7 +28,7 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->GravityScale = 1.3f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
-
+	
 	GetCharacterMovement()->SetCrouchedHalfHeight(55.f);
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 
@@ -264,6 +264,11 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 			}
 
 			UCSAnimInstance* AnimInstance = Cast<UCSAnimInstance>(GetMesh()->GetAnimInstance());
+			if (IsValid(AnimInstance) && IsValid(ShootMontage)
+				&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
+			{
+				AnimInstance->Montage_Play(ShootMontage);
+			}
 		}
 		
 	}
