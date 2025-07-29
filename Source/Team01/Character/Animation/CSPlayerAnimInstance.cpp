@@ -1,10 +1,10 @@
-#include "../Animation/CSAnimInstance.h"
+#include "../Animation/CSPlayerAnimInstance.h"
 #include "../CSCharacterBase.h"
 #include "../CSPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-void UCSAnimInstance::NativeInitializeAnimation()
+void UCSPlayerAnimInstance::NativeInitializeAnimation()
 {
 	OwnerCharacter = nullptr;
 	OwnerCharacterMovement = nullptr;
@@ -17,7 +17,7 @@ void UCSAnimInstance::NativeInitializeAnimation()
 	}
 }
 
-void UCSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+void UCSPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	if (IsValid(OwnerCharacter) && IsValid(OwnerCharacterMovement))
 	{
@@ -43,7 +43,7 @@ void UCSAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-void UCSAnimInstance::AnimNotify_CheckHit()
+void UCSPlayerAnimInstance::AnimNotify_CheckHit()
 {
 	if (OnCheckHit.IsBound())
 	{
@@ -51,7 +51,7 @@ void UCSAnimInstance::AnimNotify_CheckHit()
 	}
 }
 
-void UCSAnimInstance::AnimNotify_PostDead()
+void UCSPlayerAnimInstance::AnimNotify_PostDead()
 {
 	if (OnPostDead.IsBound())
 	{

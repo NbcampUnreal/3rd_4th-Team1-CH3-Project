@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "CSAnimInstance.generated.h"
+#include "CSPlayerAnimInstance.generated.h"
 
 class ACSCharacterBase;
 class UCharacterMovementComponent;
@@ -11,7 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCheckHit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPostDead);
 
 UCLASS()
-class TEAM01_API UCSAnimInstance : public UAnimInstance
+class TEAM01_API UCSPlayerAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 

@@ -6,7 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Input/CSInputConfig.h"
-#include "Animation/CSAnimInstance.h"
+#include "Animation/CSPlayerAnimInstance.h"
 
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
@@ -263,7 +263,7 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 				Bullet--;
 			}
 
-			UCSAnimInstance* AnimInstance = Cast<UCSAnimInstance>(GetMesh()->GetAnimInstance());
+			UCSPlayerAnimInstance* AnimInstance = Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 			if (IsValid(AnimInstance) && IsValid(ShootMontage)
 				&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
 			{

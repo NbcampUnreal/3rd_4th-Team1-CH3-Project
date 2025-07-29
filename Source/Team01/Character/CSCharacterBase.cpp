@@ -1,7 +1,7 @@
 #include "CSCharacterBase.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Animation/CSAnimInstance.h"
+#include "Animation/CSPlayerAnimInstance.h"
 
 ACSCharacterBase::ACSCharacterBase()
 {
