@@ -5,7 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "../Input/CSInputConfig.h"
+#include "Input/CSInputConfig.h"
 
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
@@ -28,7 +28,7 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	GetCharacterMovement()->GravityScale = 1.3f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
 
-	GetCharacterMovement()->CrouchedHalfHeight = 55.f;
+	GetCharacterMovement()->SetCrouchedHalfHeight(55.f);
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 
 #pragma endregion
@@ -211,6 +211,8 @@ void ACSPlayerCharacter::StartCrouch(const FInputActionValue& InValue)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Is Crouching!"));
 			Crouch();
+			bIsCrouching = true;
+			UE_LOG(LogTemp, Error, TEXT("bIsCrouching: %s"), bIsCrouching ? TEXT("True") : TEXT("False"));
 		}
 	}
 }
@@ -225,6 +227,8 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Is NOT Crouching!"));
 			UnCrouch();
+			bIsCrouching = false;
+			UE_LOG(LogTemp, Error, TEXT("bIsCrouching: %s"), bIsCrouching ? TEXT("True") : TEXT("False"));
 		}
 	}
 }
