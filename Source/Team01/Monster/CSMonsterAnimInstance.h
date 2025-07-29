@@ -12,6 +12,8 @@ class TEAM01_API UCSMonsterAnimInstance : public UAnimInstance
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
 	float Speed;
