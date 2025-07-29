@@ -24,7 +24,7 @@ public:
 	void Die();
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsDead;
+	bool bIsDie;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAttack;

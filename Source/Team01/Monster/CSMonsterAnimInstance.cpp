@@ -15,7 +15,7 @@ void UCSMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	ACSMonster* Monster = Cast<ACSMonster>(OwnerPawn);
 	if (Monster)
 	{
-		bIsDead = Monster->bIsDead;
+		bIsDead = Monster->bIsDie;
 		bIsAttack = Monster->bIsAttack;
 	}
 }
