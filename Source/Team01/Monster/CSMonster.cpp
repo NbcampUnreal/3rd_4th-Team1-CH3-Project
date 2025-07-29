@@ -14,6 +14,10 @@ ACSMonster::ACSMonster()
 	bIsDead = false;
 	bIsAttack = false;
 
+	MaxHP = 100.0f;
+	CurrentHP = MaxHP;
+	AttackDamage = 10.0f;
+
 	SightRange = 800.0f;
 	AttackRange = 100.0f;
 }
