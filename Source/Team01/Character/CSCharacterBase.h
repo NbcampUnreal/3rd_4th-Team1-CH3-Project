@@ -47,7 +47,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsDead() const { return bIsDead; }
 
+
+
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
+	float MaxHP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
+	float CurrentHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
+	float AttackDamage;
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsNowAttacking : 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
