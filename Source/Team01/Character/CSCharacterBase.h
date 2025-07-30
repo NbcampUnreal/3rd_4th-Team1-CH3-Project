@@ -7,10 +7,9 @@
 UENUM(BlueprintType)
 enum class ECharacterState : uint8
 {
-	Idle,      // 평상시(가만히 있을때)
-	Attacking, // 공격 중
-	Dead       // 사망
-	// 필요에 따라 '피격 중(Hit)', '돌진 중(Dashing)' 등등 추가 하시면 될 것 같습니다.
+	Idle,
+	Attacking,
+	Dead
 };
 
 UCLASS()

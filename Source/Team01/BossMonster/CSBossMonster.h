@@ -25,4 +25,6 @@ protected:
 
     virtual void BeginPlay() override;
  
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> AttackMontage;
 };
