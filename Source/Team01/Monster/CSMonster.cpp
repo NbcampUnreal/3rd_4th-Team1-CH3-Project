@@ -11,8 +11,9 @@ ACSMonster::ACSMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = ACSMonsterAIController::StaticClass();
 
-	bIsDead = false;
-	bIsAttack = false;
+	// 삭제: bIsDead와 bIsAttack 변수는 CurrentState로 관리하게 되어서 false로 초기화 하지 않아도 됌
+	// bIsDead = false;
+	// bIsAttack = false;
 
 	MaxHP = 100.0f;
 	CurrentHP = MaxHP;
@@ -38,9 +39,11 @@ void ACSMonster::BeginAttack()
 {
 	Super::BeginAttack();
 
-	if (bIsDead || bIsAttack) return;
+	// 변경: 여러 bool 변수를 확인하는 대신, 현재 상태가 '평시'가 아니면 공격하지 않도록 합니다.
+	if (GetCurrentState() != ECharacterState::Idle) return;
 
-	bIsAttack = true;
+	// 변경: 상태를 'Attacking'으로 설정합니다.
+	SetCurrentState(ECharacterState::Attacking);
 
 	if (AttackMontage)
 	{
@@ -52,7 +55,8 @@ void ACSMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped)
 {
 	Super::EndAttack(InMontage, bInterruped);
 
-	bIsAttack = false;
+	// 변경: 상태를 다시 '평시(Idle)'로 설정합니다.
+	SetCurrentState(ECharacterState::Idle);
 }
 
 void ACSMonster::ChasePlayer()

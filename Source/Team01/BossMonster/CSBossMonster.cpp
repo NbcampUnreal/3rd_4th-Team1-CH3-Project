@@ -5,69 +5,71 @@
 
 ACSBossMonster::ACSBossMonster()
 {
-    MaxHP = 5000.0f;
-    CurrentHP = MaxHP;
-    AttackDamage = 100.0f;
+	MaxHP = 5000.0f;
+	CurrentHP = MaxHP;
+	AttackDamage = 100.0f;
 
-    // 이 캐릭터가 사용할 AI 컨트롤러 클래스를 지정
-    AIControllerClass = ACSBossAIController::StaticClass();
-
-    // 월드에 스폰되었을 때 또는 Possess 되었을 때 AI 컨트롤러가 바로 스폰되도록 설정
-    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	AIControllerClass = ACSBossAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void ACSBossMonster::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    CurrentHP = MaxHP; // 게임 시작 시 체력을 최대로 설정
+	CurrentHP = MaxHP;
 }
 
 
 void ACSBossMonster::BeginAttack() //공격 시작 로직
 {
-    bIsNowAttacking = true;
-    UE_LOG(LogTemp, Log, TEXT("Boss has started its attack!"));
+	// 변경: bIsNowAttacking = true; 대신 상태를 'Attacking'으로 설정합니다.
+	SetCurrentState(ECharacterState::Attacking);
+	UE_LOG(LogTemp, Log, TEXT("Boss has started its attack!"));
 }
 
 
 void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped) //공격 종료 로직
 {
-    bIsNowAttacking = false;
-    bIsAttackKeyPressed = false; //연속 공격을 위한 키 입력 플래그 초기화
-    UE_LOG(LogTemp, Log, TEXT("Boss has finished its attack. Interrupted: %s"), bInterruped ? TEXT("Yes") : TEXT("No"));
+	// 변경: bIsNowAttacking = false; 대신 상태를 'Idle'로 설정합니다.
+	SetCurrentState(ECharacterState::Idle);
+
+
+	UE_LOG(LogTemp, Log, TEXT("Boss has finished its attack. Interrupted: %s"), bInterruped ? TEXT("Yes") : TEXT("No"));
 }
 
 //데미지를 받았을 때 호출될 함수
 float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-    if (FinalDamage > 0.f && !bIsDead)
-    {
-        CurrentHP -= FinalDamage;
-        UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
+	// 변경: !bIsDead 대신 GetIsDead() 함수 또는 상태 직접 비교로 변경합니다.
+	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
+	{
+		CurrentHP -= FinalDamage;
+		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
-        if (CurrentHP <= 0.f)
-        {
-            Die();
-        }
-        else
-        {
-            // TODO: 피격 애니메이션
-        }
-    }
+		if (CurrentHP <= 0.f)
+		{
+			Die();
+		}
+		else
+		{
+			// TODO: 피격 애니메이션
+		}
+	}
 
-    return FinalDamage;
+	return FinalDamage;
 }
 
 //사망 처리 함수
 void ACSBossMonster::Die()
 {
-    if (bIsDead) return;
+	// 변경: bIsDead를 직접 확인하는 대신 GetIsDead() 또는 상태를 직접 확인합니다.
+	if (GetCurrentState() == ECharacterState::Dead) return;
 
-    bIsDead = true;
+	// 변경: bIsDead = true; 대신 상태를 'Dead'로 설정합니다.
+	SetCurrentState(ECharacterState::Dead);
 
-    UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
-
+	UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
 }

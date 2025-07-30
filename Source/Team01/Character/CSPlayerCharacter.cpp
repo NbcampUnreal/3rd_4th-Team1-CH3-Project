@@ -255,7 +255,8 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 
 void ACSPlayerCharacter::Reload()
 {
-	if (Bullet < MaxBullet && !bIsNowAttacking && !bIsDead)
+	// 변경: !bIsNowAttacking && !bIsDead 대신, 현재 상태가 '평시'인지 확인합니다.
+	if (Bullet < MaxBullet && GetCurrentState() == ECharacterState::Idle)
 	{
 		UCSPlayerAnimInstance* AnimInstance =
 			Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -263,7 +264,9 @@ void ACSPlayerCharacter::Reload()
 
 		if (IsValid(AnimInstance) && IsValid(ReloadMontage))
 		{
-			bIsNowAttacking = true; // You can't Shoot while Reload-ing
+			// 변경: 재장전 중에는 다른 행동을 막기 위해 상태를 'Attacking'으로 설정합니다.
+			// (더 명확하게 하려면 ECharacterState에 Reloading 상태를 추가할 수도 있습니다.)
+			SetCurrentState(ECharacterState::Attacking);
 			AnimInstance->Montage_Play(ReloadMontage);
 
 			if (OnReloadMontageEndedDelegate.IsBound() == false)
@@ -276,7 +279,8 @@ void ACSPlayerCharacter::Reload()
 						OnBulletChanged.Broadcast(Bullet);
 						UE_LOG(LogTemp, Warning, TEXT("Reloaded, Ammo: %d"), Bullet);
 					}
-					bIsNowAttacking = false;
+					// 변경: 재장전이 끝나면 다시 '평시' 상태로 돌아옵니다.
+					SetCurrentState(ECharacterState::Idle);
 					OnReloadMontageEndedDelegate.Unbind();
 				});
 				
@@ -296,7 +300,8 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 		if (bShouldShoot)
 		{
 			bIsAttackKeyPressed = true;
-			if (!bIsNowAttacking && !bIsDead)
+			// 변경: !bIsNowAttacking && !bIsDead 대신, 현재 상태가 '평시'인지 확인합니다.
+			if (GetCurrentState() == ECharacterState::Idle)
 			{
 				if (ConsumeBullet())
 				{
@@ -424,7 +429,8 @@ void ACSPlayerCharacter::BeginAttack()
 		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
 	
-	bIsNowAttacking = true;
+	// 변경: 상태를 'Attacking'으로 설정합니다.
+	SetCurrentState(ECharacterState::Attacking);
 	if (IsValid(AnimInstance) && IsValid(ShootMontage)
 		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
 	{
@@ -441,7 +447,8 @@ void ACSPlayerCharacter::BeginAttack()
 void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 {
 	bIsAttackKeyPressed = false;
-	bIsNowAttacking = false;
+	// 변경: 상태를 다시 '평시'로 설정합니다.
+	SetCurrentState(ECharacterState::Idle);
 
 	if (OnShootMontageEndedDelegate.IsBound() == true)
 	{
