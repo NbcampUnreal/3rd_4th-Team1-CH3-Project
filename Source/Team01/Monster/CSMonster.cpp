@@ -6,7 +6,7 @@
 
 ACSMonster::ACSMonster()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = ACSMonsterAIController::StaticClass();
@@ -32,20 +32,6 @@ void ACSMonster::BeginPlay()
 void ACSMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!PlayerPawn) return;
-
-	const float Distance = FVector::Dist(PlayerPawn->GetActorLocation(), GetActorLocation());
-
-	if (Distance <= AttackRange)
-	{
-		BeginAttack();
-	}
-	else if (Distance <= SightRange)
-	{
-		ChasePlayer();
-	}
-
 }
 
 void ACSMonster::BeginAttack()

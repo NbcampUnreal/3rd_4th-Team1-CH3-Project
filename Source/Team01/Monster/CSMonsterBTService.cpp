@@ -19,25 +19,41 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	APawn* ControlledPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControlledPawn) return;
 
+	ACSMonster* Monster = Cast<ACSMonster>(ControlledPawn);
+	if (!Monster) return;
+
 	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	if (!Player) return;
 
+	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+	if (!Blackboard) return;
+
 	const float Distance = FVector::Dist(ControlledPawn->GetActorLocation(), Player->GetActorLocation());
 
-	if (Distance <= DetectRange)
-	{
-		OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Player);
+	const bool bInAttackRange = Distance <= Monster->AttackRange;
+	Blackboard->SetValueAsBool(TEXT("IsinAttackRange"), bInAttackRange);
 
-		OwnerComp.GetBlackboardComponent()->ClearValue(TEXT("PatrolTarget"));
+	const bool bDetectedPlayer = Distance <= Monster->SightRange;
+
+	if (bDetectedPlayer)
+	{
+		Blackboard->SetValueAsObject(TEXT("TargetActor"), Player);
+		Blackboard->ClearValue(TEXT("PatrolTarget"));
 	}
 	else
 	{
-		OwnerComp.GetBlackboardComponent()->ClearValue(TEXT("TargetActor"));
+		Blackboard->ClearValue(TEXT("TargetActor"));
 
+		AActor* CurrentPatrolTarget = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("PatrolTarget")));
 
-		AActor* CurrentPatrolTarget = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TEXT("PatrolTarget")));
+		bool bNeedNewTarget = !CurrentPatrolTarget;
+		if (CurrentPatrolTarget)
+		{
+			const float DistanceToPatrol = FVector::Dist(ControlledPawn->GetActorLocation(), CurrentPatrolTarget->GetActorLocation());
+			bNeedNewTarget |= (DistanceToPatrol < 100.0f);
+		}
 
-		if (!CurrentPatrolTarget || FVector::Dist(ControlledPawn->GetActorLocation(), CurrentPatrolTarget->GetActorLocation()) < 100.0f)
+		if (bNeedNewTarget)
 		{
 			TArray<AActor*> PatrolPoints;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACSMonsterTargetPoint::StaticClass(), PatrolPoints);
@@ -45,7 +61,7 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 			if (PatrolPoints.Num() > 0)
 			{
 				AActor* NewTarget = PatrolPoints[FMath::RandRange(0, PatrolPoints.Num() - 1)];
-				OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
+				Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 			}
 		}
 	}

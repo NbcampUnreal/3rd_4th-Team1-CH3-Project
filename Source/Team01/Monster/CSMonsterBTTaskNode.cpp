@@ -18,16 +18,9 @@ EBTNodeResult::Type UCSMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponent& Ow
 	ACSMonster* Monster = Cast<ACSMonster>(AIController->GetPawn());
 	if (!Monster || Monster->bIsAttack) return EBTNodeResult::Failed;
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	float Distance = FVector::Dist(Monster->GetActorLocation(), Player->GetActorLocation());
+	AIController->StopMovement();
 
-	if (Distance < Monster->AttackRange)
-	{
-		Monster->BeginAttack();
-		return EBTNodeResult::Succeeded;
-	}
-	else
-	{
-		return EBTNodeResult::Failed;
-	}
+	Monster->BeginAttack();
+
+	return EBTNodeResult::Succeeded;
 }
