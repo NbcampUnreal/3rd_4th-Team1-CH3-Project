@@ -13,16 +13,16 @@ class TEAM01_API ACSBossMonster : public ACSCharacterBase
 public:
     ACSBossMonster();
 
-protected:
-    virtual void BeginPlay() override;
-  
     virtual void BeginAttack() override;
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
-    
+
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
-private:
- 
     void Die(); //죽었을 때 처리될 함수
+
+protected:
+
+    virtual void BeginPlay() override;
+ 
 };

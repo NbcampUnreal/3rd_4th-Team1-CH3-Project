@@ -1,11 +1,19 @@
 #include "CSBossMonster.h"
+#include "CSBossAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 
 ACSBossMonster::ACSBossMonster()
 {
     MaxHP = 5000.0f;
     CurrentHP = MaxHP;
     AttackDamage = 100.0f;
+
+    // 이 캐릭터가 사용할 AI 컨트롤러 클래스를 지정
+    AIControllerClass = ACSBossAIController::StaticClass();
+
+    // 월드에 스폰되었을 때 또는 Possess 되었을 때 AI 컨트롤러가 바로 스폰되도록 설정
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void ACSBossMonster::BeginPlay()
