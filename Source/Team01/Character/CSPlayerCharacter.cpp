@@ -7,6 +7,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "Input/CSInputConfig.h"
 #include "Animation/CSPlayerAnimInstance.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/DamageEvents.h"
+#include "../Team01.h"
 
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
@@ -52,7 +56,7 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	SpringArmComponent->bInheritYaw = true;
 	SpringArmComponent->bInheritRoll = false;
 	SpringArmComponent->bDoCollisionTest = true;
-	SpringArmComponent->SetRelativeLocation(FVector(0.f, 25.f, 25.f));
+	SpringArmComponent->SetRelativeLocation(FVector(0.f, 50.f, 100.f));
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
@@ -297,6 +301,7 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 				if (ConsumeBullet())
 				{
 					BeginAttack();
+					TryFire();
 				}
 			}
 			
@@ -330,6 +335,87 @@ bool ACSPlayerCharacter::ConsumeBullet()
 	}
 	UE_LOG(LogTemp, Warning, TEXT("No Ammo"));
 	return false;
+}
+
+void ACSPlayerCharacter::TryFire()
+{
+	if (IsValid(GetController()))
+	{
+#pragma region CalculateTargetTransform
+
+		float FocalDistance = 1000.f;
+		FVector FocalLocation, CameraLocation;
+		FRotator CameraRotation;
+
+		GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		FVector AimDirectionFromCamera = CameraRotation.Vector().GetSafeNormal();
+		FocalLocation = CameraLocation + (AimDirectionFromCamera * FocalDistance);
+
+		FTransform TargetTransform(CameraRotation, FocalLocation);
+
+		if (1 == ShowAttackRangedDebug)
+		{
+			DrawDebugSphere(GetWorld(), FocalLocation, 100.f, 16, FColor::Red, false, 30.f);
+			DrawDebugSphere(GetWorld(), CameraLocation, 100.f, 16, FColor::Yellow, false, 30.f);
+
+			DrawDebugLine(GetWorld(), CameraLocation, FocalLocation, FColor::Blue, false, 30.f, 0, 5.f);
+		}
+
+#pragma endregion
+
+#pragma region PerformLineTracing
+
+		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
+		FVector StartLocation = GetActorLocation();
+		FVector EndLocation = TargetTransform.GetLocation() + BulletDirection * GetMaxShootRange();
+
+		FHitResult HitResult;
+		FCollisionQueryParams TraceParams(NAME_None, false, this);
+		TraceParams.AddIgnoredActor(this);
+
+		bool IsCollided = GetWorld()->LineTraceSingleByChannel(
+			HitResult,
+			StartLocation,
+			EndLocation,
+			ECC_SHOOT,
+			TraceParams
+		);
+		if (!IsCollided)
+		{
+			HitResult.TraceStart = StartLocation;
+			HitResult.TraceEnd = EndLocation;
+		}
+
+		if (2 == ShowAttackRangedDebug)
+		{
+			if (IsCollided)
+			{
+				DrawDebugSphere(GetWorld(), StartLocation, 100.f, 16, FColor::Red, false, 30.f);
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 100.f, 16, FColor::Green, false, 30.f);
+				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 30.f, 0, 5.f);
+			}
+			else
+			{
+				DrawDebugSphere(GetWorld(), StartLocation, 100.f, 16, FColor::Red, false, 30.f);
+				DrawDebugSphere(GetWorld(), EndLocation, 100.f, 16, FColor::Green, false, 30.f);
+				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 30.f, 0, 5.f);
+			}
+		}
+
+#pragma endregion
+
+		if (IsCollided)
+		{
+			ACSCharacterBase* HittedCharacter =
+				Cast<ACSCharacterBase>(HitResult.GetActor());
+			if (IsValid(HittedCharacter))
+			{
+				FDamageEvent DamageEvent;
+				HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+			}
+		}
+	}
 }
 
 void ACSPlayerCharacter::BeginAttack()

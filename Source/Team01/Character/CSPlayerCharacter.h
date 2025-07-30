@@ -70,6 +70,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetMaxBulletCount() const { return MaxBullet; }
 
+	float GetMaxShootRange() const { return MaxShootRange; }
+
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
@@ -82,10 +84,15 @@ private:
 	void InputReload(const FInputActionValue& InValue);
 
 	bool ConsumeBullet();
+	void TryFire();
 
 protected:
 	int32 Bullet;
 	int32 MaxBullet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (Units = cm))
+	float MaxShootRange = 20000.f;
+
 	
 #pragma endregion
 

@@ -3,6 +3,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/CSPlayerAnimInstance.h"
 
+int32 ACSCharacterBase::ShowAttackRangedDebug = 1;
+
+FAutoConsoleVariableRef CVarShowAttackRangedDebug(
+	TEXT("CS.ShowAttackRangedDebug"),
+	ACSCharacterBase::ShowAttackRangedDebug,
+	TEXT(""),
+	ECVF_Cheat
+);
+
 ACSCharacterBase::ACSCharacterBase()
 {
  	PrimaryActorTick.bCanEverTick = true;

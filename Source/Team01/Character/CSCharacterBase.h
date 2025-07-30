@@ -34,6 +34,9 @@ public:
 	virtual void BeginAttack();
 	UFUNCTION()
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted);
+
+public:
+	static int32 ShowAttackRangedDebug;
 	
 
 #pragma endregion
