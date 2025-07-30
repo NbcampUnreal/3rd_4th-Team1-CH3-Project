@@ -33,7 +33,7 @@ public:
 	UFUNCTION()
 	virtual void BeginAttack();
 	UFUNCTION()
-	virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped);
+	virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted);
 	
 
 #pragma endregion

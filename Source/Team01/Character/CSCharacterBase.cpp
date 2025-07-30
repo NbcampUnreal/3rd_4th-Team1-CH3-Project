@@ -31,7 +31,7 @@ void ACSCharacterBase::BeginAttack()
 {
 }
 
-void ACSCharacterBase::EndAttack(UAnimMontage* InMontage, bool bInterruped)
+void ACSCharacterBase::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 {
 }
 

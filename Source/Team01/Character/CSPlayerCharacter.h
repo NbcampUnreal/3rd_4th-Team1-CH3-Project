@@ -93,13 +93,16 @@ protected:
 
 public:
 	virtual void BeginAttack() override;
-	virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
+	virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> ShootMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> ReloadMontage;
 
 	FOnMontageEnded OnShootMontageEndedDelegate;
+	FOnMontageEnded OnReloadMontageEndedDelegate;
 	
 #pragma endregion
 

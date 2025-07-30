@@ -251,11 +251,35 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 
 void ACSPlayerCharacter::Reload()
 {
-	if (Bullet < MaxBullet)
+	if (Bullet < MaxBullet && !bIsNowAttacking && !bIsDead)
 	{
-		Bullet = MaxBullet;
-		OnBulletChanged.Broadcast(Bullet);
-		UE_LOG(LogTemp, Warning, TEXT("Reloaded, Ammo: %d"), Bullet);
+		UCSPlayerAnimInstance* AnimInstance =
+			Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+
+		if (IsValid(AnimInstance) && IsValid(ReloadMontage))
+		{
+			bIsNowAttacking = true; // You can't Shoot while Reload-ing
+			AnimInstance->Montage_Play(ReloadMontage);
+
+			if (OnReloadMontageEndedDelegate.IsBound() == false)
+			{
+				OnReloadMontageEndedDelegate.BindLambda([this](UAnimMontage* InMontage, bool bInterrupted)
+				{
+					if (!bInterrupted)
+					{
+						Bullet = MaxBullet;
+						OnBulletChanged.Broadcast(Bullet);
+						UE_LOG(LogTemp, Warning, TEXT("Reloaded, Ammo: %d"), Bullet);
+					}
+					bIsNowAttacking = false;
+					OnReloadMontageEndedDelegate.Unbind();
+				});
+				
+				AnimInstance->Montage_SetEndDelegate(OnReloadMontageEndedDelegate, ReloadMontage);
+			}
+		}
+		
 	}
 }
 
@@ -312,7 +336,7 @@ void ACSPlayerCharacter::BeginAttack()
 {
 	UCSPlayerAnimInstance* AnimInstance =
 		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstnace"));
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
 	
 	bIsNowAttacking = true;
 	if (IsValid(AnimInstance) && IsValid(ShootMontage)
@@ -328,7 +352,7 @@ void ACSPlayerCharacter::BeginAttack()
 	}
 }
 
-void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterruped)
+void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 {
 	bIsAttackKeyPressed = false;
 	bIsNowAttacking = false;
