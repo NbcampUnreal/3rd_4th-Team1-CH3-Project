@@ -25,11 +25,4 @@ protected:
 private:
  
     void Die(); //죽었을 때 처리될 함수
-
-protected:
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss Stats")
-    float MaxHealth; //최대 체력
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss Stats")
-    float CurrentHealth; //현재체력
 };

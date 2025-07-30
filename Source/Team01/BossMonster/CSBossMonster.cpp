@@ -3,15 +3,16 @@
 
 ACSBossMonster::ACSBossMonster()
 {
-    MaxHealth = 5000.0f;
-    CurrentHealth = MaxHealth;
+    MaxHP = 5000.0f;
+    CurrentHP = MaxHP;
+    AttackDamage = 100.0f;
 }
 
 void ACSBossMonster::BeginPlay()
 {
     Super::BeginPlay();
 
-    CurrentHealth = MaxHealth; // 게임 시작 시 체력을 최대로 설정
+    CurrentHP = MaxHP; // 게임 시작 시 체력을 최대로 설정
 }
 
 
@@ -32,14 +33,14 @@ void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped) //공�
 //데미지를 받았을 때 호출될 함수
 float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-    if (ActualDamage > 0.f && !bIsDead)
+    if (FinalDamage > 0.f && !bIsDead)
     {
-        CurrentHealth -= ActualDamage;
-        UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), ActualDamage, CurrentHealth);
+        CurrentHP -= FinalDamage;
+        UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
-        if (CurrentHealth <= 0.f)
+        if (CurrentHP <= 0.f)
         {
             Die();
         }
@@ -49,7 +50,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
         }
     }
 
-    return ActualDamage;
+    return FinalDamage;
 }
 
 //사망 처리 함수
@@ -58,6 +59,7 @@ void ACSBossMonster::Die()
     if (bIsDead) return;
 
     bIsDead = true;
+
     UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
 
 }
