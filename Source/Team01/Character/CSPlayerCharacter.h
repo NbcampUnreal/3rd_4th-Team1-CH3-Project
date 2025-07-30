@@ -75,6 +75,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnBulletChanged OnBulletChanged;

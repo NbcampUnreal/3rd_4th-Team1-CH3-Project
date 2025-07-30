@@ -43,14 +43,6 @@ void UCSPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-void UCSPlayerAnimInstance::AnimNotify_CheckHit()
-{
-	if (OnCheckHit.IsBound())
-	{
-		OnCheckHit.Broadcast();
-	}
-}
-
 void UCSPlayerAnimInstance::AnimNotify_PostDead()
 {
 	if (OnPostDead.IsBound())

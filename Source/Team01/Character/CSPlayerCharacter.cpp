@@ -11,6 +11,7 @@
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
 #include "../Team01.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
@@ -291,6 +292,21 @@ void ACSPlayerCharacter::Reload()
 	}
 }
 
+float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+                                     class AController* EventInstigator, AActor* DamageCauser)
+{
+	float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (1 == ShowAttackRangedDebug)
+	{
+		UKismetSystemLibrary::PrintString(
+			this, FString::Printf(TEXT("%s has taken damage: %.f"),
+				*GetName(), FinalDamageAmount));
+	}
+
+	return FinalDamageAmount;
+}
+
 void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 {
 	if (IsValid(GetController()))
@@ -371,55 +387,75 @@ void ACSPlayerCharacter::TryFire()
 
 #pragma region PerformLineTracing
 
-		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
-		FVector StartLocation = GetActorLocation();
-		FVector EndLocation = TargetTransform.GetLocation() + BulletDirection * GetMaxShootRange();
+		APlayerController* PlayerController =
+			Cast<APlayerController>(GetController());
+		int32 ViewportSizeX, ViewportSizeY;
+		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
 
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams(NAME_None, false, this);
-		TraceParams.AddIgnoredActor(this);
+		FVector2D CrosshairLocation(ViewportSizeX / 2.f, ViewportSizeY / 2.f);
 
-		bool IsCollided = GetWorld()->LineTraceSingleByChannel(
-			HitResult,
-			StartLocation,
-			EndLocation,
-			ECC_SHOOT,
-			TraceParams
-		);
-		if (!IsCollided)
+		FVector CrosshairWorldPosition, CrosshairWorldDirection;
+		if (PlayerController->DeprojectScreenPositionToWorld(
+			CrosshairLocation.X,
+			CrosshairLocation.Y,
+			CrosshairWorldPosition,
+			CrosshairWorldDirection))
 		{
-			HitResult.TraceStart = StartLocation;
-			HitResult.TraceEnd = EndLocation;
-		}
+			FVector WeaponOffset(50.f, 90.f, 180.f);
+			FVector StartLocation = GetMesh()->GetComponentLocation() +
+				GetMesh()->GetForwardVector() * WeaponOffset.X +
+					GetMesh()->GetRightVector() * WeaponOffset.Y +
+						GetMesh()->GetUpVector() * WeaponOffset.Z;
 
-		if (2 == ShowAttackRangedDebug)
-		{
-			if (IsCollided)
-			{
-				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 16, FColor::Green, false, 10.f);
-				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
-			}
-			else
-			{
-				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-				DrawDebugSphere(GetWorld(), EndLocation, 10.f, 16, FColor::Green, false, 10.f);
-				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
-			}
-		}
+			FVector EndLocation = CrosshairWorldPosition +
+				CrosshairWorldDirection * GetMaxShootRange();
 
+			FHitResult HitResult;
+			FCollisionQueryParams TraceParams(NAME_None, true, this);
+			TraceParams.AddIgnoredActor(this);
+
+			bool IsCollided = GetWorld()->LineTraceSingleByChannel(
+				HitResult,
+				StartLocation,
+				EndLocation,
+				ECC_SHOOT,
+				TraceParams
+			);
+			if (!IsCollided)
+			{
+				HitResult.TraceStart = StartLocation;
+				HitResult.TraceEnd = EndLocation;
+			}
+
+			if (2 == ShowAttackRangedDebug)
+			{
+				if (IsCollided)
+				{
+					DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+					DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 16, FColor::Green, false, 10.f);
+					DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
+				}
+				else
+				{
+					DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+					DrawDebugSphere(GetWorld(), EndLocation, 10.f, 16, FColor::Green, false, 10.f);
+					DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
+				}
+			}
 #pragma endregion
 
-		if (IsCollided)
-		{
-			ACSCharacterBase* HittedCharacter =
-				Cast<ACSCharacterBase>(HitResult.GetActor());
-			if (IsValid(HittedCharacter))
+			if (IsCollided)
 			{
-				FDamageEvent DamageEvent;
-				HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+				ACSCharacterBase* HittedCharacter =
+					Cast<ACSCharacterBase>(HitResult.GetActor());
+				if (IsValid(HittedCharacter))
+				{
+					FDamageEvent DamageEvent;
+					HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+				}
 			}
 		}
+		
 	}
 }
 

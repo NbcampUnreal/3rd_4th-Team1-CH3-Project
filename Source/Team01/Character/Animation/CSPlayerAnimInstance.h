@@ -7,7 +7,6 @@
 class ACSPlayerCharacter;
 class UCharacterMovementComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCheckHit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPostDead);
 
 UCLASS()
@@ -20,8 +19,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
-	UFUNCTION()
-	void AnimNotify_CheckHit();
 	UFUNCTION()
 	void AnimNotify_PostDead();
 
@@ -48,7 +45,6 @@ protected:
 	float NormalizedCurrentPitch;
 
 public:
-	FOnCheckHit OnCheckHit;
 	FOnPostDead OnPostDead;
 	
 };
