@@ -7,6 +7,7 @@ UCSMonsterBTDecorator::UCSMonsterBTDecorator()
 	NodeName = TEXT("Check Character Cindition");
 }
 
-bool UCSMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
-{
-}
+//bool UCSMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+//{
+//
+//}
