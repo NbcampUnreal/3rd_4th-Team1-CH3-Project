@@ -29,11 +29,14 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAttack;
 
-private:
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float SightRange;
+
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float AttackRange;
+
+private:
+
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	UAnimMontage* AttackMontage;
 

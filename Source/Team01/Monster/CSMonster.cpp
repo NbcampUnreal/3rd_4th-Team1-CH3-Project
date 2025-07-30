@@ -18,8 +18,8 @@ ACSMonster::ACSMonster()
 	CurrentHP = MaxHP;
 	AttackDamage = 10.0f;
 
-	SightRange = 800.0f;
-	AttackRange = 100.0f;
+	SightRange = 1500.0f;
+	AttackRange = 400.0f;
 }
 
 void ACSMonster::BeginPlay()

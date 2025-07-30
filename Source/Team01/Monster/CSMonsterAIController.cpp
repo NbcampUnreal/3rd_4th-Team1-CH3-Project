@@ -4,6 +4,8 @@
 
 ACSMonsterAIController::ACSMonsterAIController()
 {
+	Blackboardcomp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
+
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTRef(TEXT("'/Game/Team01/Monster/AI/BT_CSMonster.BT_CSMonster'"));
 	if (BTRef.Succeeded())
 	{
