@@ -361,10 +361,10 @@ void ACSPlayerCharacter::TryFire()
 
 		if (1 == ShowAttackRangedDebug)
 		{
-			DrawDebugSphere(GetWorld(), FocalLocation, 100.f, 16, FColor::Red, false, 30.f);
-			DrawDebugSphere(GetWorld(), CameraLocation, 100.f, 16, FColor::Yellow, false, 30.f);
+			DrawDebugSphere(GetWorld(), FocalLocation, 5.f, 16, FColor::Red, false, 10.f);
+			DrawDebugSphere(GetWorld(), CameraLocation, 5.f, 16, FColor::Yellow, false, 10.f);
 
-			DrawDebugLine(GetWorld(), CameraLocation, FocalLocation, FColor::Blue, false, 30.f, 0, 5.f);
+			DrawDebugLine(GetWorld(), CameraLocation, FocalLocation, FColor::Blue, false, 10.f, 0, 5.f);
 		}
 
 #pragma endregion
@@ -396,15 +396,15 @@ void ACSPlayerCharacter::TryFire()
 		{
 			if (IsCollided)
 			{
-				DrawDebugSphere(GetWorld(), StartLocation, 100.f, 16, FColor::Red, false, 30.f);
-				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 100.f, 16, FColor::Green, false, 30.f);
-				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 30.f, 0, 5.f);
+				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 16, FColor::Green, false, 10.f);
+				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
 			}
 			else
 			{
-				DrawDebugSphere(GetWorld(), StartLocation, 100.f, 16, FColor::Red, false, 30.f);
-				DrawDebugSphere(GetWorld(), EndLocation, 100.f, 16, FColor::Green, false, 30.f);
-				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 30.f, 0, 5.f);
+				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+				DrawDebugSphere(GetWorld(), EndLocation, 10.f, 16, FColor::Green, false, 10.f);
+				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
 			}
 		}
 
@@ -417,7 +417,7 @@ void ACSPlayerCharacter::TryFire()
 			if (IsValid(HittedCharacter))
 			{
 				FDamageEvent DamageEvent;
-				HittedCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
+				HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 			}
 		}
 	}

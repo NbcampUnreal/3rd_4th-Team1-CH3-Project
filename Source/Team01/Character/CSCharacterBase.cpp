@@ -3,7 +3,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/CSPlayerAnimInstance.h"
 
-int32 ACSCharacterBase::ShowAttackRangedDebug = 1;
+int32 ACSCharacterBase::ShowAttackRangedDebug = 2;
 
 FAutoConsoleVariableRef CVarShowAttackRangedDebug(
 	TEXT("CS.ShowAttackRangedDebug"),
