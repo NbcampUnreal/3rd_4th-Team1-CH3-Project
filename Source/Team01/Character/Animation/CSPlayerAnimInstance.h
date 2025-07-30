@@ -4,7 +4,7 @@
 #include "Animation/AnimInstance.h"
 #include "CSPlayerAnimInstance.generated.h"
 
-class ACSCharacterBase;
+class ACSPlayerCharacter;
 class UCharacterMovementComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCheckHit);
@@ -27,7 +27,7 @@ private:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<ACSCharacterBase> OwnerCharacter;
+	TObjectPtr<ACSPlayerCharacter> OwnerCharacter;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCharacterMovementComponent> OwnerCharacterMovement;
 
@@ -41,6 +41,8 @@ protected:
 	uint8 bIsFalling : 1;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	uint8 bIsDead : 1;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	uint8 bIsCrouching : 1;
 
 	UPROPERTY(BlueprintReadOnly)
 	float NormalizedCurrentPitch;

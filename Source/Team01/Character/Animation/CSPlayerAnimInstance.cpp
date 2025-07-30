@@ -1,5 +1,4 @@
-#include "../Animation/CSPlayerAnimInstance.h"
-#include "../CSCharacterBase.h"
+#include "CSPlayerAnimInstance.h"
 #include "../CSPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,7 +11,7 @@ void UCSPlayerAnimInstance::NativeInitializeAnimation()
 	APawn* OwnerPawn = TryGetPawnOwner();
 	if (IsValid(OwnerPawn))
 	{
-		OwnerCharacter = Cast<ACSCharacterBase>(OwnerPawn);
+		OwnerCharacter = Cast<ACSPlayerCharacter>(OwnerPawn);
 		OwnerCharacterMovement = OwnerCharacter->GetCharacterMovement();
 	}
 }
@@ -33,6 +32,7 @@ void UCSPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = OwnerCharacterMovement->IsFalling();
 
 		bIsDead = OwnerCharacter->GetIsDead();
+		bIsCrouching = OwnerCharacter->GetIsCrouching();
 
 		if (APlayerController* OwnerPlayerController =
 			Cast<APlayerController>(OwnerCharacter->GetController()))

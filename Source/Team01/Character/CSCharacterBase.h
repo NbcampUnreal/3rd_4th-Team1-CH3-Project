@@ -34,10 +34,7 @@ public:
 	virtual void BeginAttack();
 	UFUNCTION()
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped);
-
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> ShootMontage;
+	
 
 #pragma endregion
 
@@ -46,8 +43,12 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsDead() const { return bIsDead; }
-
-
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHP() const { return MaxHP; }
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHP() const { return CurrentHP; }
+	UFUNCTION(BlueprintCallable)
+	float GetAttackDamage() const { return AttackDamage; }
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")
@@ -61,9 +62,10 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	uint8 bIsNowAttacking : 1;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsAttackKeyPressed : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 bIsNowAttacking : 1;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsDead : 1;
 	

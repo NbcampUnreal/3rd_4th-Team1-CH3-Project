@@ -62,6 +62,10 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 
 #pragma region Character Status
 
+	MaxHP = 100.f;
+	CurrentHP = MaxHP;
+	AttackDamage = 10.f;
+	
 	MaxBullet = 6;
 	Bullet = MaxBullet;
 	
@@ -245,6 +249,16 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 	}
 }
 
+void ACSPlayerCharacter::Reload()
+{
+	if (Bullet < MaxBullet)
+	{
+		Bullet = MaxBullet;
+		OnBulletChanged.Broadcast(Bullet);
+		UE_LOG(LogTemp, Warning, TEXT("Reloaded, Ammo: %d"), Bullet);
+	}
+}
+
 void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 {
 	if (IsValid(GetController()))
@@ -253,22 +267,15 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 
 		if (bShouldShoot)
 		{
-			if (Bullet <= 0)
+			bIsAttackKeyPressed = true;
+			if (!bIsNowAttacking && !bIsDead)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("No Ammo"));
+				if (ConsumeBullet())
+				{
+					BeginAttack();
+				}
 			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Shoot"));
-				Bullet--;
-			}
-
-			UCSPlayerAnimInstance* AnimInstance = Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-			if (IsValid(AnimInstance) && IsValid(ShootMontage)
-				&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
-			{
-				AnimInstance->Montage_Play(ShootMontage);
-			}
+			
 		}
 		
 	}
@@ -282,9 +289,53 @@ void ACSPlayerCharacter::InputReload(const FInputActionValue& InValue)
 
 		if (bShouldReload)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Reload"));
-			Bullet = MaxBullet;
+			Reload();
 		}
+	}
+}
+
+bool ACSPlayerCharacter::ConsumeBullet()
+{
+	if (Bullet > 0)
+	{
+		Bullet--;
+		OnBulletChanged.Broadcast(Bullet);
+
+		UE_LOG(LogTemp, Error, TEXT("Shoot! Ammo: %d"), Bullet);
+		return true;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("No Ammo"));
+	return false;
+}
+
+void ACSPlayerCharacter::BeginAttack()
+{
+	UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstnace"));
+	
+	bIsNowAttacking = true;
+	if (IsValid(AnimInstance) && IsValid(ShootMontage)
+		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
+	{
+		AnimInstance->Montage_Play(ShootMontage);
+	}
+
+	if (OnShootMontageEndedDelegate.IsBound() == false)
+	{
+		OnShootMontageEndedDelegate.BindUObject(this, &ThisClass::EndAttack);
+		AnimInstance->Montage_SetEndDelegate(OnShootMontageEndedDelegate, ShootMontage);
+	}
+}
+
+void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterruped)
+{
+	bIsAttackKeyPressed = false;
+	bIsNowAttacking = false;
+
+	if (OnShootMontageEndedDelegate.IsBound() == true)
+	{
+		OnShootMontageEndedDelegate.Unbind();
 	}
 }
 
