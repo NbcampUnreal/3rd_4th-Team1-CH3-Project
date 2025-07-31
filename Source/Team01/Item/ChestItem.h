@@ -16,7 +16,9 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-	virtual void
+	virtual void ActivateItem(AActor* Activator) override;
+
+private:
 
 	UPROPERTY()
 	bool bIsOpened;
@@ -25,7 +27,6 @@ protected:
 	AActor* CachedActivator;
 
 
-	virtual void ActivateItem(AActor* Activator) override;
 	void OpenChest();
 	
 };

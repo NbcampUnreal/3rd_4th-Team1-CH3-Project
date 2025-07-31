@@ -4,17 +4,25 @@
 
 AChestItem::AChestItem()
 {
-	ItemType = "Chest";
 	bIsOpened = false;
+	CachedActivator = nullptr;
+}
+
+void AChestItem::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AChestItem::ActivateItem(AActor* Activator)
 {
-	if (!bIsOpened)
+	if (!bIsOpened || Activator == nullptr)
 	{
-		bIsOpened = true;
-		OpenChest();
+		return;
 	}
+	
+	CachedActivator = Activator;
+	OpenChest();
+	
 }
 
 void AChestItem::OpenChest()
