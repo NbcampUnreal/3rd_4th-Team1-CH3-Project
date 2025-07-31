@@ -1,6 +1,7 @@
 #include "CSBTService_BossDetectPlayer.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Team01/Character/CSCharacterBase.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -48,4 +49,13 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
 
 	// 5. 계산된 거리에 따라 'IsInAttackRange' 키의 값을 true 또는 false로 업데이트합니다.
 	OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), DistanceToPlayer <= AttackRange);
+
+	ACSCharacterBase* ControllingCharacter = Cast<ACSCharacterBase>(ControllingPawn);
+	if (ControllingCharacter == nullptr) return;
+
+	// 6. 캐릭터의 현재 C++ 상태(CurrentState)를 가져옵니다.
+	ECharacterState CurrentPawnState = ControllingCharacter->GetCurrentState();
+
+	// 7. 블랙보드의 'CurrentState' 키 값을 방금 가져온 캐릭터의 상태 값으로 업데이트합니다.
+	OwnerComp.GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentState"), (uint8)CurrentPawnState);
 }

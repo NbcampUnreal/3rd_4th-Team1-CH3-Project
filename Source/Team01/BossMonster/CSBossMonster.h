@@ -14,6 +14,9 @@ class TEAM01_API ACSBossMonster : public ACSCharacterBase
 public:
     ACSBossMonster();
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> AttackMontage;
+
     virtual void BeginAttack() override;
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
@@ -21,6 +24,10 @@ public:
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
     void Die(); //죽었을 때 처리될 함수
+
+
+    UPROPERTY(EditInstanceOnly, Category = "AI")
+    TArray<TObjectPtr<AActor>> PatrolPoints;
 
 protected:
 

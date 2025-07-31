@@ -1,4 +1,6 @@
 #include "CSBTTask_BossAttack.h"
+#include "Animation/AnimInstance.h"
+#include "GameFramework/Character.h"
 #include "AIController.h"
 #include "Team01/BossMonster/CSBossMonster.h"
 
@@ -9,25 +11,31 @@ UCSBTTask_BossAttack::UCSBTTask_BossAttack()
 
 EBTNodeResult::Type UCSBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	Super::ExecuteTask(OwnerComp, NodeMemory);
+    Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	// 1. 이 태스크를 실행한 AI의 컨트롤러를 가져옵니다.
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (AIController == nullptr)
-	{
-		return EBTNodeResult::Failed; // 실패
-	}
+    AAIController* AIController = OwnerComp.GetAIOwner();
+    if (AIController == nullptr)
+    {
+        return EBTNodeResult::Failed;
+    }
 
-	// 2. AI 컨트롤러가 조종하는 폰(보스 몬스터)을 가져옵니다.
-	ACSBossMonster* BossMonster = Cast<ACSBossMonster>(AIController->GetPawn());
-	if (BossMonster == nullptr)
-	{
-		return EBTNodeResult::Failed; // 실패
-	}
+    ACSBossMonster* BossMonster = Cast<ACSBossMonster>(AIController->GetPawn());
+    if (BossMonster == nullptr || BossMonster->AttackMontage == nullptr)
+    {
+        return EBTNodeResult::Failed;
+    }
 
-	// 3. 보스 몬스터의 공격 함수를 호출합니다!
-	BossMonster->BeginAttack();
+    // 보스의 애니메이션 인스턴스를 가져와서 'AttackMontage'를 재생시킵니다.
+    UAnimInstance* AnimInstance = BossMonster->GetMesh()->GetAnimInstance();
+    if (AnimInstance)
+    {
+        // 몽타주가 이미 재생 중이 아니라면 재생시킵니다.
+        if (!AnimInstance->Montage_IsPlaying(BossMonster->AttackMontage))
+        {
+            AnimInstance->Montage_Play(BossMonster->AttackMontage);
+        }
+    }
 
-	// 4. 태스크가 성공적으로 완료되었다고 비헤이비어 트리에 알립니다.
-	return EBTNodeResult::Succeeded;
+    // 태스크는 "재생하라는 명령을 내렸다"는 임무를 완수했으므로 '성공'을 반환합니다.
+    return EBTNodeResult::Succeeded;
 }
