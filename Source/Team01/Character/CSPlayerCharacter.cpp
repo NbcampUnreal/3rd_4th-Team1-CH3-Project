@@ -362,9 +362,11 @@ void ACSPlayerCharacter::Reload()
 float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
+	float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
 	if (GetIsDead())
 	{
-		HandleOnPostDead();
+		IsDying();
 	}
 	else
 	{
@@ -383,7 +385,8 @@ float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 			false
 		);
 	}
-	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	return FinalDamageAmount;
 }
 
 void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
@@ -530,7 +533,21 @@ void ACSPlayerCharacter::TryFire()
 			if (IsValid(HittedCharacter))
 			{
 				FDamageEvent DamageEvent;
-				HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+
+				// 피격 부위 확인
+				FString BoneNameString = HitResult.BoneName.ToString();
+				UKismetSystemLibrary::PrintString(this, BoneNameString);
+				DrawDebugSphere(GetWorld(), HitResult.Location,
+					3.f, 16, FColor(255,0,0,255), true, 20.f, 0U, 5.f);
+
+				if (BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
+				{
+					HittedCharacter->TakeDamage(AttackDamage * 3.f, DamageEvent, GetController(), this);
+				}
+				else
+				{
+					HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+				}
 			}
 		}
 		
@@ -584,6 +601,16 @@ void ACSPlayerCharacter::IsDying()
 	UCSPlayerAnimInstance* AnimInstance =
 		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+
+	if (IsValid(AnimInstance) && IsValid(DeathMontage)
+		&& AnimInstance->Montage_IsPlaying(DeathMontage) == false
+		&& CurrentState == ECharacterState::Dead)
+	{
+		AnimInstance->OnPostDead.RemoveAll(this);
+		AnimInstance->OnPostDead.AddDynamic(this, &ACSCharacterBase::HandleOnPostDead);	
+		
+		AnimInstance->Montage_Play(DeathMontage);
+	}
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()

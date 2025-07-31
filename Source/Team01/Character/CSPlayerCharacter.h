@@ -66,6 +66,7 @@ public:
 	bool GetIsCrouching() const { return bIsCrouching; }
 	UFUNCTION()
 	void TryActivateNearbyItem();
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCSInputConfig> PlayerCharacterInputConfig;
@@ -129,6 +130,7 @@ public:
 	UFUNCTION()
 	void OnHittedRagdollRestoreTimerElapsed();
 
+	// 사망 애니메이션 재생
 	UFUNCTION()
 	void IsDying();
 
@@ -137,6 +139,8 @@ protected:
 	TObjectPtr<UAnimMontage> ShootMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> ReloadMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> DeathMontage;
 
 	// EndAttack 으로 전달하기 위한 delegate
 	FOnMontageEnded OnShootMontageEndedDelegate;
