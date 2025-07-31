@@ -1,5 +1,6 @@
 #include "PotionItem.h"
-//#include "Character/CSPlayerCharacter.h"
+#include "CSPlayerCharacter.h"
+#include "GameFramework/Actor.h"
 
 APotionItem::APotionItem()
 {
@@ -8,9 +9,9 @@ APotionItem::APotionItem()
 
 void APotionItem::OnItemOverlap(AActor* OverlapActor)
 {
-    //if (CSPlayerCharacter* Player = Cast<CSPlayerCharacter>(OverlapActor))
-    //{
-    //    Player->RecoverHealth(50.f);
-    //    DestroyItem();
-    //}
+    if (ACSPlayerCharacter* Player = Cast<ACSPlayerCharacter>(OverlapActor))
+    {
+        Player->RecoverHealth(50.f);
+        DestroyItem();
+    }
 }

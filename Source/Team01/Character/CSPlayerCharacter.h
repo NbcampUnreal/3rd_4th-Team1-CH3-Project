@@ -22,6 +22,8 @@ class TEAM01_API ACSPlayerCharacter : public ACSCharacterBase
 	
 public:
 	ACSPlayerCharacter();
+	
+	void RecoverHealth(float Amount);
 
 	virtual void BeginPlay() override;
 
