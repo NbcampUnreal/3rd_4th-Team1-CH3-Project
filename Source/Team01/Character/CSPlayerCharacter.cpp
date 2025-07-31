@@ -303,15 +303,6 @@ void ACSPlayerCharacter::Reload()
 	}
 }
 
-// 추후 CharacterBase 로 옮길 수 있음
-float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
-                                     class AController* EventInstigator, AActor* DamageCauser)
-{
-	float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	return FinalDamageAmount;
-}
-
 void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 {
 	if (IsValid(GetController()))

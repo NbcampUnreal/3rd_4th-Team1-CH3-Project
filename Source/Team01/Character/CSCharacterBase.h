@@ -32,15 +32,16 @@ protected:
 public:
 	UFUNCTION()
 	void HandleOnCheckInputAttack();
-	UFUNCTION()
-	void HandleOnCheckHit();
-	UFUNCTION()
-	void HandleOnPostDead();
+	// UFUNCTION()
+	// void HandleOnCheckHit();
 
 	UFUNCTION()
 	virtual void BeginAttack();
 	UFUNCTION()
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted);
+
+	// 공통 TakeDamage
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 public:
 	static int32 ShowAttackRangedDebug;
@@ -52,8 +53,6 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	bool GetIsDead() const; //bIsDead 대신 상태를 확인 하도록 변경
-	UFUNCTION(BlueprintCallable)
 	float GetMaxHP() const { return MaxHP; }
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHP() const { return CurrentHP; }
@@ -64,6 +63,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "State")
 	ECharacterState GetCurrentState() const { return CurrentState; }
 	void SetCurrentState(ECharacterState NewState);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsDead() const; //bIsDead 대신 상태를 확인 하도록 변경
+
+	UFUNCTION()
+	virtual void HandleOnPostDead();
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat")

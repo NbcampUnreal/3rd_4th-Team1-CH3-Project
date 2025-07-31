@@ -83,9 +83,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
-	// 추후 CharacterBase로 옮길 수 있음
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
+	
 public:
 	// 위에서 선언한 Delegate 변수
 	UPROPERTY(BlueprintAssignable)
