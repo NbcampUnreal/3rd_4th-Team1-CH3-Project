@@ -18,6 +18,9 @@ UCSBTService_BossDetectPlayer::UCSBTService_BossDetectPlayer()
 
 	// 기본 공격 사정거리를 300cm (3m)로 설정, 에디터에서 수정 가능
 	AttackRange = 300.0f;
+
+	// 플레이어를 인식하는 거리 2000cm (20m)
+	DetectRange = 2000.0f; 
 }
 
 void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -26,36 +29,35 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
 
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	// 1. 이 AI가 조종하는 폰(보스 몬스터)을 가져옵니다.
-	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
-	if (ControllingPawn == nullptr)
-	{
-		return;
-	}
+    APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+    if (ControllingPawn == nullptr) return;
 
-	// 2. 월드에 있는 플레이어 폰을 가져옵니다.
-	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (TargetPlayer == nullptr)
-	{
-		return;
-	}
+    APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+    if (TargetPlayer == nullptr) return;
 
-	// 3. 블랙보드에 'TargetPlayer' 키의 값을 방금 찾은 플레이어로 업데이트합니다.
-	// GetSelectedBlackboardKey()는 에디터에서 우리가 지정할 키(TargetPlayer)를 의미합니다.
-	OwnerComp.GetBlackboardComponent()->SetValueAsObject(GetSelectedBlackboardKey(), TargetPlayer);
+    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+    if (BlackboardComp == nullptr) return;
 
-	// 4. 보스와 플레이어 사이의 거리를 계산합니다.
-	const float DistanceToPlayer = ControllingPawn->GetDistanceTo(TargetPlayer);
+    // C++ 캐릭터의 현재 상태를 블랙보드에 업데이트
+    ACSCharacterBase* ControllingCharacter = Cast<ACSCharacterBase>(ControllingPawn);
+    if (ControllingCharacter)
+    {
+        BlackboardComp->SetValueAsEnum(TEXT("CurrentState"), (uint8)ControllingCharacter->GetCurrentState());
+    }
 
-	// 5. 계산된 거리에 따라 'IsInAttackRange' 키의 값을 true 또는 false로 업데이트합니다.
-	OwnerComp.GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), DistanceToPlayer <= AttackRange);
+    const float DistanceToPlayer = ControllingPawn->GetDistanceTo(TargetPlayer);
 
-	ACSCharacterBase* ControllingCharacter = Cast<ACSCharacterBase>(ControllingPawn);
-	if (ControllingCharacter == nullptr) return;
-
-	// 6. 캐릭터의 현재 C++ 상태(CurrentState)를 가져옵니다.
-	ECharacterState CurrentPawnState = ControllingCharacter->GetCurrentState();
-
-	// 7. 블랙보드의 'CurrentState' 키 값을 방금 가져온 캐릭터의 상태 값으로 업데이트합니다.
-	OwnerComp.GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentState"), (uint8)CurrentPawnState);
+    // ▼▼ 핵심 로직: 인식 범위 안에 있을 때와 아닐 때를 구분함 ▼▼
+    if (DistanceToPlayer <= DetectRange)
+    {
+        // [범위 안] 플레이어를 타겟으로 설정하고, 공격 범위 여부를 업데이트
+        BlackboardComp->SetValueAsObject(TEXT("TargetPlayer"), TargetPlayer);
+        BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), DistanceToPlayer <= AttackRange);
+    }
+    else
+    {
+        // [범위 밖] 플레이어를 잊어버리고(타겟을 비움), 공격 범위도 false로 설정
+        BlackboardComp->ClearValue(TEXT("TargetPlayer"));
+        BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), false);
+    }
 }
