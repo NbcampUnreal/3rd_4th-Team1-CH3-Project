@@ -23,8 +23,6 @@ class TEAM01_API ACSPlayerCharacter : public ACSCharacterBase
 	
 public:
 	ACSPlayerCharacter();
-	
-	void RecoverHealth(float Amount);
 
 	virtual void BeginPlay() override;
 
@@ -41,6 +39,7 @@ protected:
 
 #pragma region Character Status
 
+public:
 	void RecoverHealth(float Amount);
 
 #pragma endregion

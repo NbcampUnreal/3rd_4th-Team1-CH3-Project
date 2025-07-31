@@ -496,11 +496,6 @@ void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 	}
 }
 
-void ACSPlayerCharacter::RecoverHealth(float Amount)
-{
-	CurrentHP = FMath::Clamp(CurrentHP + Amount, 0.f, MaxHP);
-	UE_LOG(LogTemp, Warning, TEXT("+HP: %.0f / %.0f"), CurrentHP, MaxHP);
-}
 
 
 
