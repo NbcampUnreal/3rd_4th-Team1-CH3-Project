@@ -32,9 +32,6 @@ public:
 protected:
 
     virtual void BeginPlay() override;
- 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-    TObjectPtr<UAnimMontage> AttackMontage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> HPBarComponent;
