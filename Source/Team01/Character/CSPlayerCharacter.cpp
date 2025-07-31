@@ -376,7 +376,7 @@ bool ACSPlayerCharacter::ConsumeBullet()
 	{
 		Bullet--;
 		OnBulletChanged.Broadcast(Bullet);
-
+		
 		UE_LOG(LogTemp, Error, TEXT("Shoot! Ammo: %d"), Bullet);
 		return true;
 	}

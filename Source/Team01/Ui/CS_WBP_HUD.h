@@ -17,7 +17,7 @@ class TEAM01_API UCS_WBP_HUD : public UUserWidget
 	GENERATED_BODY()
 public:
 	// 탄약 텍스트를 갱신하는 함수
-	void UpdateAmmoText(const FString& NewAmmoText);
+	void UpdateAmmoText(int32 CurrentAmmo, int32 MaxAmmo);
 	// 체력바 퍼센트를 갱신하는 함수
 	void UpdateHP(float NewPercent);
 	// 킬 수를 갱신하는 함수

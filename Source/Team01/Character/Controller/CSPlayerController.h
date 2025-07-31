@@ -1,10 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "../Ui/CS_WBP_HUD.h"
 #include "GameFramework/PlayerController.h"
 #include "CSPlayerController.generated.h"
-
-class UCS_WBP_HUD;
 
 UCLASS()
 class TEAM01_API ACSPlayerController : public APlayerController
@@ -20,7 +19,9 @@ protected:
 #pragma region HUD
 public:
 	FORCEINLINE UCS_WBP_HUD* GetHUDWidget() const { return HUDWidget; } // HUD 접근 가능하도록 Getter 추가
-
+	void UpdateAmmoHUD(int32 CurrentAmmo, int32 MaxAmmo);
+	UFUNCTION()
+	void OnBulletChanged_Handler(int32 NewBulletCount);
 private:
 	UPROPERTY(EditDefaultsOnly, Category="UI")
 	TSubclassOf<UCS_WBP_HUD> HUDWidgetClass;  // 위젯 블루프린트 지정용

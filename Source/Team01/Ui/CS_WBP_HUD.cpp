@@ -13,7 +13,8 @@ void UCS_WBP_HUD::NativeConstruct()
 	// 탄약 초기화 (0 / 0)
 	if (Ammo)
 	{
-		Ammo->SetText(FText::FromString(TEXT("00 / 00")));
+		const FString AmmoString = FString::Printf(TEXT("%02d / %02d"), 0, 0);
+		Ammo->SetText(FText::FromString(AmmoString));
 	}
 
 	// 체력바는 처음엔 최대 체력으로 시작
@@ -68,11 +69,12 @@ void UCS_WBP_HUD::ShowHitMarker()
 }
 
 // 탄약 표시 텍스트를 업데이트합니다 ("12 / 30" 형식)
-void UCS_WBP_HUD::UpdateAmmoText(const FString& NewAmmoText)
+void UCS_WBP_HUD::UpdateAmmoText(int32 CurrentAmmo, int32 MaxAmmo)
 {
 	if (Ammo)
 	{
-		Ammo->SetText(FText::FromString(NewAmmoText));
+		const FString AmmoString = FString::Printf(TEXT("%02d / %02d"), CurrentAmmo, MaxAmmo);
+		Ammo->SetText(FText::FromString(AmmoString));
 	}
 }
 

@@ -21,9 +21,13 @@ void UCS_WBP_KillConfirm::ShowKillMessage(const FString& Message)
 		KillConfirm->SetText(FText::FromString(Message));
 		SetVisibility(ESlateVisibility::Visible);
 
-		// 1초 후 자동 숨김
+		// 메시지 보여준 뒤 제거 예약 (완전히 제거)
 		GetWorld()->GetTimerManager().ClearTimer(HideTimer);
-		GetWorld()->GetTimerManager().SetTimer(HideTimer, this, &UCS_WBP_KillConfirm::HideMessage, 1.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(HideTimer, [this]()
+		{
+			RemoveFromParent();
+			UE_LOG(LogTemp, Warning, TEXT("[KillConfirm] Removed"));
+		}, 1.0f, false);
 
 		UE_LOG(LogTemp, Warning, TEXT("[KillConfirm] Show: %s"), *Message);
 	}
