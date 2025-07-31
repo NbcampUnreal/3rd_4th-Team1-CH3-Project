@@ -1,57 +1,50 @@
 #include "BaseItem.h"
 #include "Components/SphereComponent.h"
-#include "Components/StaticMeshComponent.h"
 
 ABaseItem::ABaseItem()
 {
     PrimaryActorTick.bCanEverTick = false;
 
     Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
-    RootComponent = Scene;
+    SetRootComponent(Scene);
 
     Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
     Collision->SetupAttachment(Scene);
-    Collision->SetSphereRadius(100.f);
-    Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    Collision->SetCollisionObjectType(ECC_WorldDynamic);
-    Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
-    Collision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-    Collision->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::HandleBeginOverlap);
-    Collision->OnComponentEndOverlap.AddDynamic(this, &ABaseItem::HandleEndOverlap);
 
     StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-    StaticMesh->SetupAttachment(Scene);
+    StaticMesh->SetupAttachment(Collision);
 }
 
-void ABaseItem::HandleBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void ABaseItem::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (IsValid(Collision))
+    {
+        Collision->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::OnOverlapBegin);
+    }
+}
+
+void ABaseItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    OnItemOverlap(OtherActor);
+    if (OtherActor && OtherActor != this)
+    {
+        IItemInterface::Execute_OnItemOverlap(this, OtherActor);
+        UE_LOG(LogTemp, Warning, TEXT("BaseItem Overlap: %s"), *OtherActor->GetName());
+    }
 }
 
-void ABaseItem::HandleEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ABaseItem::OnItemOverlap_Implementation(AActor* OverlapActor) 
 {
-    OnItemEndOverlap(OtherActor);
 }
-
-void ABaseItem::OnItemOverlap(AActor* OverlapActor)
+void ABaseItem::OnItemEndOverlap_Implementation(AActor* OverlapActor) 
 {
-    // 자식에서 구현
 }
-
-void ABaseItem::OnItemEndOverlap(AActor* OverlapActor)
+void ABaseItem::ActivateItem_Implementation(AActor* Activator) 
 {
-    // 자식에서 구현
 }
-
-void ABaseItem::ActivateItem(AActor* Activator)
-{
-    // 자식에서 구현
-}
-
-FName ABaseItem::GetItemType() const
+FName ABaseItem::GetItemType_Implementation() const 
 {
     return ItemType;
 }

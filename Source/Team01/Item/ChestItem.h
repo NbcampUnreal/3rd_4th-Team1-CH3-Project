@@ -16,7 +16,16 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-	virtual void ActivateItem(AActor* Activator) override;
+	virtual void ActivateItem_Implementation(AActor* Activator) override;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* BodyMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* LidMesh;
+
+	FTimerHandle LidOpenTimer;
+	FRotator TargetLidRotation;
 
 private:
 
@@ -28,5 +37,6 @@ private:
 
 
 	void OpenChest();
+	void TickLidRotation();
 	
 };

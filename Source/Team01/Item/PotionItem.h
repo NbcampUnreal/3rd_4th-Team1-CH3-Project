@@ -12,6 +12,8 @@ class TEAM01_API APotionItem : public ABaseItem
 public:
     APotionItem();
 
-protected:
-    virtual void OnItemOverlap(AActor* OverlapActor) override;
+
+    virtual void OnItemOverlap_Implementation(AActor* OverlapActor) override;
+
+
 };

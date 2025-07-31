@@ -18,8 +18,15 @@ class TEAM01_API IItemInterface
 
 public:
 
-	virtual void OnItemOverlap(AActor* OverlapActor) = 0;
-	virtual void OnItemEndOverlap(AActor* OverlapActor) = 0;
-	virtual void ActivateItem(AActor* Activator) = 0;
-	virtual FName GetItemType() const = 0;
+    UFUNCTION(BlueprintNativeEvent)
+    void OnItemOverlap(AActor* OverlapActor);
+
+    UFUNCTION(BlueprintNativeEvent)
+    void OnItemEndOverlap(AActor* OverlapActor);
+
+    UFUNCTION(BlueprintNativeEvent)
+    void ActivateItem(AActor* Activator);
+
+    UFUNCTION(BlueprintNativeEvent)
+    FName GetItemType() const;
 };

@@ -7,7 +7,7 @@ APotionItem::APotionItem()
     ItemType = "Potion";
 }
 
-void APotionItem::OnItemOverlap(AActor* OverlapActor)
+void APotionItem::OnItemOverlap_Implementation(AActor* OverlapActor)
 {
     if (ACSPlayerCharacter* Player = Cast<ACSPlayerCharacter>(OverlapActor))
     {

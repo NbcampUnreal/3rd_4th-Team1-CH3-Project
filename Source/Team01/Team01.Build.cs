@@ -15,7 +15,8 @@ public class Team01 : ModuleRules
 
         PublicIncludePaths.AddRange(new string[]
         {
-    Path.Combine(ModuleDirectory, "Character")
+            Path.Combine(ModuleDirectory, "Item"),
+            Path.Combine(ModuleDirectory, "Character")
         });
 
 
