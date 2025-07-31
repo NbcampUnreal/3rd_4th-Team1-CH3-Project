@@ -1,12 +1,14 @@
 #include "CSBossMonster.h"
 #include "CSBossAIController.h"
+#include "Components/CapsuleComponent.h"
+#include "BrainComponent.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
 ACSBossMonster::ACSBossMonster()
 {
-	MaxHP = 5000.0f;
+	MaxHP = 200.0f;
 	CurrentHP = MaxHP;
 	AttackDamage = 100.0f;
 
@@ -62,7 +64,15 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 		}
 		else
 		{
-			// TODO: 피격 애니메이션
+			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 '슈퍼아머'처럼 만듭니다.
+			if (GetCurrentState() != ECharacterState::Attacking)
+			{
+				UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+				if (AnimInstance && HitReactMontage)
+				{
+					AnimInstance->Montage_Play(HitReactMontage);
+				}
+			}
 		}
 	}
 
@@ -72,11 +82,26 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 //사망 처리 함수
 void ACSBossMonster::Die()
 {
-	// 변경: bIsDead를 직접 확인하는 대신 GetIsDead() 또는 상태를 직접 확인합니다.
 	if (GetCurrentState() == ECharacterState::Dead) return;
 
-	// 변경: bIsDead = true; 대신 상태를 'Dead'로 설정합니다.
 	SetCurrentState(ECharacterState::Dead);
+
+	// 죽음 몽타주 재생
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	// 캡슐 컴포넌트의 충돌을 꺼서 죽은 뒤에 시체가 다른 액터를 막지 않도록 합니다.
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// AI 로직을 정지시킵니다.
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController && AIController->GetBrainComponent())
+	{
+		AIController->GetBrainComponent()->StopLogic(TEXT("Boss is Dead"));
+	}
 
 	UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
 }

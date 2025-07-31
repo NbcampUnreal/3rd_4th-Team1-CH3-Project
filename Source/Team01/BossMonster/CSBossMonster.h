@@ -15,7 +15,13 @@ public:
     ACSBossMonster();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-    TObjectPtr<UAnimMontage> AttackMontage;
+    TObjectPtr<UAnimMontage> AttackMontage; // 공격 할 때 애니메이션 몽타주
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> HitReactMontage; //맞았을 때 히트 애니메이션 몽타주
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> DeathMontage; //죽었을 때 애니메이션 몽타주
 
     virtual void BeginAttack() override;
 
