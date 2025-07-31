@@ -25,7 +25,7 @@ protected:
     UPROPERTY(VisibleAnywhere)
     USphereComponent* Collision;
 
-    UPROPERTY(VisibleAnywhere)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     UStaticMeshComponent* StaticMesh;
 
     UFUNCTION()

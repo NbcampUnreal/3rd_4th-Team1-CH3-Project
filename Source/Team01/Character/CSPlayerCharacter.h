@@ -36,6 +36,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> CameraComponent;
 
+	
 #pragma endregion
 
 #pragma region Character Status
@@ -43,6 +44,7 @@ protected:
 public:
 	void RecoverHealth(float Amount);
 
+	
 #pragma endregion
 
 #pragma region Input
@@ -62,7 +64,8 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsCrouching() const { return bIsCrouching; }
-
+	UFUNCTION()
+	void TryActivateNearbyItem();
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCSInputConfig> PlayerCharacterInputConfig;

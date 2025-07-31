@@ -12,6 +12,7 @@
 #include "Engine/DamageEvents.h"
 #include "../Team01.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "ItemInterface.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 
 
@@ -211,6 +212,13 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			ETriggerEvent::Completed,
 			this,
 			&ThisClass::StopIronSight
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Interact,
+			ETriggerEvent::Started,
+			this,
+			&ACSPlayerCharacter::TryActivateNearbyItem
 		);
 	}
 }
@@ -578,6 +586,21 @@ void ACSPlayerCharacter::IsDying()
 	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
 }
 
+void ACSPlayerCharacter::TryActivateNearbyItem()
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors);
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (Actor->Implements<UItemInterface>())
+		{
+			IItemInterface::Execute_ActivateItem(Actor, this);
+			UE_LOG(LogTemp, Warning, TEXT("Press F: %s"), *Actor->GetName());
+			break;
+		}
+	}
+}
 
 
 

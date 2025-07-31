@@ -13,6 +13,12 @@ AChestItem::AChestItem()
 	LidMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LidMesh"));
 	LidMesh->SetupAttachment(BodyMesh);
 
+	if (IsValid(StaticMesh))
+	{
+		StaticMesh->SetHiddenInGame(true);
+		StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		StaticMesh->SetVisibility(false);
+	}
 
 	bIsOpened = false;
 	CachedActivator = nullptr;
