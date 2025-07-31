@@ -12,6 +12,7 @@
 #include "Engine/DamageEvents.h"
 #include "../Team01.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 
 
 ACSPlayerCharacter::ACSPlayerCharacter()
@@ -103,6 +104,21 @@ void ACSPlayerCharacter::Tick(float DeltaSeconds)
 
 	CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, 10.f);
 	CameraComponent->SetFieldOfView(CurrentFOV);
+
+	if (bIsNowRagdollBlending)
+	{
+		CurrentRagdollBlendWeight =
+			FMath::FInterpTo(CurrentRagdollBlendWeight, TargetRagdollBlendWeight, DeltaSeconds, 10.f);
+
+		FName PivotBoneName = FName(TEXT("pelvis"));
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PivotBoneName, CurrentRagdollBlendWeight);
+
+		if (CurrentRagdollBlendWeight - TargetRagdollBlendWeight < KINDA_SMALL_NUMBER)
+		{
+			GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, false);
+			bIsNowRagdollBlending = false;
+		}
+	}
 }
 
 void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -335,6 +351,33 @@ void ACSPlayerCharacter::Reload()
 	}
 }
 
+float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	if (GetIsDead())
+	{
+		HandleOnPostDead();
+	}
+	else
+	{
+		FName PivotBoneName = FName(TEXT("pelvis"));
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
+		TargetRagdollBlendWeight = 1.f;
+
+		HittedRagdollRestoreTimerDelegate.BindUObject(
+			this, &ThisClass::OnHittedRagdollRestoreTimerElapsed
+		);
+
+		GetWorldTimerManager().SetTimer(
+			HittedRagdollRestoreTimer,
+			HittedRagdollRestoreTimerDelegate,
+			1.f,
+			false
+		);
+	}
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
 void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 {
 	if (IsValid(GetController()))
@@ -517,6 +560,22 @@ void ACSPlayerCharacter::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 	{
 		OnShootMontageEndedDelegate.Unbind();
 	}
+}
+
+void ACSPlayerCharacter::OnHittedRagdollRestoreTimerElapsed()
+{
+	FName PivotBoneName = FName(TEXT("pelvis"));
+
+	TargetRagdollBlendWeight = 0.f;
+	CurrentRagdollBlendWeight = 1.f;
+	bIsNowRagdollBlending = true;
+}
+
+void ACSPlayerCharacter::IsDying()
+{
+	UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
 }
 
 

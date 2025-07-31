@@ -90,6 +90,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 	
 public:
 	// 위에서 선언한 Delegate 변수
@@ -120,6 +122,13 @@ public:
 	virtual void BeginAttack() override; 
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted) override;
 
+	// 피격 시 레그돌 기능
+	UFUNCTION()
+	void OnHittedRagdollRestoreTimerElapsed();
+
+	UFUNCTION()
+	void IsDying();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> ShootMontage;
@@ -129,6 +138,13 @@ protected:
 	// EndAttack 으로 전달하기 위한 delegate
 	FOnMontageEnded OnShootMontageEndedDelegate;
 	FOnMontageEnded OnReloadMontageEndedDelegate;
+
+	FTimerHandle HittedRagdollRestoreTimer;
+	FTimerDelegate HittedRagdollRestoreTimerDelegate;
+
+	float TargetRagdollBlendWeight = 0.f;
+	float CurrentRagdollBlendWeight = 0.f;
+	bool bIsNowRagdollBlending = false;
 	
 #pragma endregion
 
