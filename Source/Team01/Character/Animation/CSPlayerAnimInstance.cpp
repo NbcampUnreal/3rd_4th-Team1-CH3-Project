@@ -33,6 +33,7 @@ void UCSPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		bIsDead = OwnerCharacter->GetIsDead();
 		bIsCrouching = OwnerCharacter->GetIsCrouching();
+		
 
 		if (APlayerController* OwnerPlayerController =
 			Cast<APlayerController>(OwnerCharacter->GetController()))

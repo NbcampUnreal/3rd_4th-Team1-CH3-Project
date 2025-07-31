@@ -40,6 +40,8 @@ protected:
 	uint8 bIsDead : 1;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	uint8 bIsCrouching : 1;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	uint8 bIsAttackKeyPressed : 1;
 
 	UPROPERTY(BlueprintReadOnly)
 	float NormalizedCurrentPitch;
