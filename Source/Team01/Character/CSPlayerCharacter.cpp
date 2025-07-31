@@ -177,6 +177,12 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
+void ACSPlayerCharacter::RecoverHealth(float Amount)
+{
+	CurrentHP = FMath::Clamp(CurrentHP + Amount, 0.f, MaxHP);
+	UE_LOG(LogTemp, Warning, TEXT("+HP: %.0f / %.0f"), CurrentHP, MaxHP);
+}
+
 void ACSPlayerCharacter::InputMove(const FInputActionValue& InValue)
 {
 	if (IsValid(GetController()))

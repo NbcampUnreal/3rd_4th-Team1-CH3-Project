@@ -39,6 +39,12 @@ protected:
 
 #pragma endregion
 
+#pragma region Character Status
+
+	void RecoverHealth(float Amount);
+
+#pragma endregion
+
 #pragma region Input
 
 private:
