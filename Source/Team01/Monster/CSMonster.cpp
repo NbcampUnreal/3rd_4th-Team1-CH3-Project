@@ -1,5 +1,6 @@
 #include "CSMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "../UI/CS_WBP_EnemyHPBar.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CSMonsterAIController.h"
 #include "AIController.h"
@@ -21,6 +22,12 @@ ACSMonster::ACSMonster()
 
 	SightRange = 1500.0f;
 	AttackRange = 400.0f;
+
+	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
+	HPBarComponent->SetupAttachment(RootComponent);
+	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
+	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f)); // 머리 위
 }
 
 void ACSMonster::BeginPlay()
@@ -28,6 +35,15 @@ void ACSMonster::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
+	{
+		UCS_WBP_EnemyHPBar* HPWidget = Cast<UCS_WBP_EnemyHPBar>(Widget);
+		if (HPWidget)
+		{
+			HPWidget->SetHPBarPercent(CurrentHP / MaxHP);
+		}
+	}
 }
 
 void ACSMonster::Tick(float DeltaTime)

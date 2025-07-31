@@ -39,6 +39,11 @@ void UCS_WBP_HUD::NativeConstruct()
 	{
 		MissionStatusText->SetText(FText::FromString(TEXT("미션: 준비 중")));
 	}
+
+	if (HitMarker)
+	{
+		HitMarker->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UCS_WBP_HUD::ShowHitMarker()

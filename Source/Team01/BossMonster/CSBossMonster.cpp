@@ -1,5 +1,6 @@
 #include "CSBossMonster.h"
 #include "CSBossAIController.h"
+#include "../UI/CS_WBP_EnemyHPBar.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -11,6 +12,12 @@ ACSBossMonster::ACSBossMonster()
 
 	AIControllerClass = ACSBossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
+	HPBarComponent->SetupAttachment(RootComponent);
+	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HPBarComponent->SetDrawSize(FVector2D(200.f, 25.f)); // 보스는 약간 더 큼직하게
+	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 }
 
 void ACSBossMonster::BeginPlay()

@@ -1,7 +1,10 @@
 #include "CSCharacterBase.h"
-
+#include "../Character/Controller/CSPlayerController.h"
+#include "../UI/CS_WBP_EnemyHPBar.h"
+#include "../Ui/CS_WBP_HUD.h"
 #include "Animation/CSPlayerAnimInstance.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/DamageEvents.h"
@@ -56,6 +59,36 @@ float ACSCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	UE_LOG(LogTemp, Warning, TEXT("%s was taken damage: %.f"), *GetName(), FinalDamageAmount);
 	
 	CurrentHP = FMath::Clamp(CurrentHP - FinalDamageAmount, 0.f, MaxHP);
+
+	if (IsValid(DamageCauser))
+	{
+		APawn* InstigatorPawn = Cast<APawn>(DamageCauser);
+		if (InstigatorPawn && InstigatorPawn->IsPlayerControlled())
+		{
+			APlayerController* PC = Cast<APlayerController>(InstigatorPawn->GetController());
+			if (IsValid(PC))
+			{
+				ACSPlayerController* MyPC = Cast<ACSPlayerController>(PC);
+				if (MyPC && MyPC->GetHUDWidget())
+				{
+					MyPC->GetHUDWidget()->ShowHitMarker();
+				}
+			}
+		}
+	}
+	
+	if (IsPlayerControlled())
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (IsValid(PC))
+		{
+			ACSPlayerController* MyPC = Cast<ACSPlayerController>(PC);
+			if (MyPC && MyPC->GetHUDWidget())
+			{
+				MyPC->GetHUDWidget()->UpdateHP(CurrentHP / MaxHP);
+			}
+		}
+	}
 	
 	if (CurrentHP < KINDA_SMALL_NUMBER)
 	{
@@ -66,6 +99,20 @@ float ACSCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		GetCharacterMovement()->SetMovementMode(MOVE_None);
 	}
 
+	if (!IsPlayerControlled())
+	{
+		if (UWidgetComponent* WidgetComp = FindComponentByClass<UWidgetComponent>())
+		{
+			if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject())
+			{
+				if (UCS_WBP_EnemyHPBar* EnemyHP = Cast<UCS_WBP_EnemyHPBar>(Widget))
+				{
+					EnemyHP->SetHPBarPercent(CurrentHP / MaxHP);
+				}
+			}
+		}
+	}
+	
 	return FinalDamageAmount;
 }
 

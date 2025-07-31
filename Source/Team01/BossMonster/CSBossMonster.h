@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "Components/WidgetComponent.h"
 #include "CSBossMonster.generated.h"
 
 
@@ -27,4 +28,7 @@ protected:
  
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> AttackMontage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> HPBarComponent;
 };

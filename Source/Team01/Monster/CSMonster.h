@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "Components/WidgetComponent.h"
 #include "CSMonster.generated.h"
 
 UCLASS()
@@ -9,7 +10,7 @@ class TEAM01_API ACSMonster : public ACSCharacterBase
 {
 	GENERATED_BODY()
 
-public:
+public:	
 	ACSMonster();
 
 protected:
@@ -34,6 +35,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float AttackRange;
+
+protected:
+	// 🔴 추가: HP바 위젯 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	TObjectPtr<UWidgetComponent> HPBarComponent;
 
 private:
 

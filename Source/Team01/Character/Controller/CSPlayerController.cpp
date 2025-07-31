@@ -19,7 +19,7 @@ void ACSPlayerController::BeginPlay()
 void ACSPlayerController::CreateHUD()
 {
 	// HUD 위젯 생성
-	HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+	HUDWidget = CreateWidget<UCS_WBP_HUD>(this, HUDWidgetClass);
 
 	// 유효하면 화면에 표시
 	if (HUDWidget)
