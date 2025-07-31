@@ -21,7 +21,6 @@ public:
 	virtual void BeginAttack() override;
 	virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
 
-	void ChasePlayer();
 	void Die();
 	float GetCurrentHP();
 
@@ -38,7 +37,6 @@ public:
 	float AttackRange;
 
 protected:
-	// 🔴 추가: HP바 위젯 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UWidgetComponent> HPBarComponent;
 

@@ -37,6 +37,9 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	const bool bDetectedPlayer = Distance <= Monster->SightRange;
 	Blackboard->SetValueAsBool(TEXT("DetectedPlayer"), bDetectedPlayer);
 
+	const bool bIsDead = Monster->GetCurrentHP() <= 0;
+	Blackboard->SetValueAsBool(TEXT("IsDead"), bIsDead);
+
 	if (bDetectedPlayer)
 	{
 		Blackboard->SetValueAsObject(TEXT("TargetActor"), Player);

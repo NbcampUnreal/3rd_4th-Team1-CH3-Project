@@ -3,6 +3,7 @@
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CSMonsterAIController.h"
+#include "CSMonsterAnimInstance.h"
 #include "AIController.h"
 
 ACSMonster::ACSMonster()
@@ -15,7 +16,7 @@ ACSMonster::ACSMonster()
 	bIsDead = false;
 	bIsAttack = false;
 
-	MaxHP = 100.0f;
+	MaxHP = 40.0f;
 	CurrentHP = MaxHP;
 	AttackDamage = 10.0f;
 
@@ -26,7 +27,7 @@ ACSMonster::ACSMonster()
 	HPBarComponent->SetupAttachment(RootComponent);
 	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
-	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f)); // 머리 위
+	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 }
 
 void ACSMonster::BeginPlay()
@@ -57,8 +58,6 @@ float ACSMonster::GetCurrentHP()
 
 void ACSMonster::BeginAttack()
 {
-	Super::BeginAttack();
-
 	if (GetCurrentState() != ECharacterState::Idle) return;
 
 	SetCurrentState(ECharacterState::Attacking);
@@ -84,40 +83,41 @@ void ACSMonster::BeginAttack()
 	{
 		PlayAnimMontage(AttackMontage);
 	}
+
+	if (PlayerPawn)
+	{
+		UGameplayStatics::ApplyDamage(PlayerPawn, AttackDamage, GetController(), this, nullptr);
+	}
 }
 
 void ACSMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped)
 {
-	Super::EndAttack(InMontage, bInterruped);
-
 	bIsAttack = false;
 
 	SetCurrentState(ECharacterState::Idle);
 }
 
-//void ACSMonster::ChasePlayer()
-//{
-//	if (bIsAttack || bIsDead) return;
-//
-//	AAIController* AIController = Cast<AAIController>(GetController());
-//	if (AIController && PlayerPawn)
-//	{
-//		AIController->MoveToActor(PlayerPawn);
-//	}
-//}
-
 void ACSMonster::Die()
 {
 	AAIController* AIController = Cast<AAIController>(GetController());
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	bIsDead = true;
-
-	AIController->UnPossess();
+	bIsAttack = false;
 
 	SetCurrentState(ECharacterState::Dead);
+
+	if (AnimInstance->IsAnyMontagePlaying())
+	{
+		AnimInstance->StopAllMontages(0.2f);
+	}
 
 	if (DeadMontage)
 	{
 		PlayAnimMontage(DeadMontage);
 	}
+
+	AIController->UnPossess();
+	SetLifeSpan(5.0f);
 }
+
