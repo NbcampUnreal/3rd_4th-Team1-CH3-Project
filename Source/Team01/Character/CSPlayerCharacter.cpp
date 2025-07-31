@@ -97,6 +97,14 @@ void ACSPlayerCharacter::BeginPlay()
 	}
 }
 
+void ACSPlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, 10.f);
+	CameraComponent->SetFieldOfView(CurrentFOV);
+}
+
 void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -173,6 +181,20 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			ETriggerEvent::Triggered,
 			this,
 			&ThisClass::InputReload
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->IronSight,
+			ETriggerEvent::Triggered,
+			this,
+			&ThisClass::StartIronSight
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->IronSight,
+			ETriggerEvent::Completed,
+			this,
+			&ThisClass::StopIronSight
 		);
 	}
 }
@@ -263,6 +285,16 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 			bIsCrouching = false;
 		}
 	}
+}
+
+void ACSPlayerCharacter::StartIronSight(const FInputActionValue& InValue)
+{
+	TargetFOV = 45.f;
+}
+
+void ACSPlayerCharacter::StopIronSight(const FInputActionValue& InValue)
+{
+	TargetFOV = 70.f;
 }
 
 void ACSPlayerCharacter::Reload()

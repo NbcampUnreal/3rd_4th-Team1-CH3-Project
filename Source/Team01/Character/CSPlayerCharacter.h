@@ -25,6 +25,7 @@ public:
 	ACSPlayerCharacter();
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;	
@@ -55,6 +56,9 @@ private:
 	void StartCrouch(const FInputActionValue& InValue);
 	void StopCrouch(const FInputActionValue& InValue);
 
+	void StartIronSight(const FInputActionValue& InValue);
+	void StopIronSight(const FInputActionValue& InValue);
+
 public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsCrouching() const { return bIsCrouching; }
@@ -67,6 +71,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	uint8 bIsCrouching : 1;
+
+	float TargetFOV = 70.f;
+	float CurrentFOV = 70.f;
 
 #pragma endregion
 

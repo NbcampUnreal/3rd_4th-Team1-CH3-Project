@@ -27,4 +27,6 @@ public:
 	TObjectPtr<UInputAction> Shoot;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UInputAction> Reload;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> IronSight;
 };
