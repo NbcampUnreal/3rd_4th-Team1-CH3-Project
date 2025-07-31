@@ -1,6 +1,7 @@
 #include "CSMonsterBTService.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
+#include "CSMonsterAIController.h"
 #include "CSMonster.h"
 #include "CSMonsterTargetPoint.h"
 #include "GameFramework/Character.h"
@@ -34,6 +35,7 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	Blackboard->SetValueAsBool(TEXT("IsinAttackRange"), bInAttackRange);
 
 	const bool bDetectedPlayer = Distance <= Monster->SightRange;
+	Blackboard->SetValueAsBool(TEXT("DetectedPlayer"), bDetectedPlayer);
 
 	if (bDetectedPlayer)
 	{
@@ -64,5 +66,16 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 				Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 			}
 		}
+	}
+
+	if (Monster->GetCurrentHP() <= 0.f)
+	{
+		Monster->Die();
+		return;
+	}
+
+	if (Monster->AttackRange < Distance)
+	{
+		Monster->EndAttack(nullptr, true);
 	}
 }

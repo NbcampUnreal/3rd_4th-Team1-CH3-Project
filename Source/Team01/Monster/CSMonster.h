@@ -23,9 +23,10 @@ public:
 
 	void ChasePlayer();
 	void Die();
+	float GetCurrentHP();
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsDie;
+	bool bIsDead;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAttack;
@@ -45,6 +46,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dead")
+	UAnimMontage* DeadMontage;
 
 	UPROPERTY()
 	APawn* PlayerPawn;
