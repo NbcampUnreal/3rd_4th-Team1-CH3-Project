@@ -13,6 +13,7 @@
 #include "../Team01.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+
 ACSPlayerCharacter::ACSPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -33,7 +34,8 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->GravityScale = 1.3f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1000.f;
-	
+
+	// 앉기 시 변화
 	GetCharacterMovement()->SetCrouchedHalfHeight(55.f);
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 
@@ -46,17 +48,19 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 450.f, 0.f);
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = true;	// 캐릭터 이동방향으로 몸체 자동회전
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->SetupAttachment(RootComponent);
 	SpringArmComponent->TargetArmLength = 400.f;
-	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->bUsePawnControlRotation = true;		// 카메라가 컨트롤러 회전을 따름
 	SpringArmComponent->bInheritPitch = true;
 	SpringArmComponent->bInheritYaw = true;
 	SpringArmComponent->bInheritRoll = false;
 	SpringArmComponent->bDoCollisionTest = true;
+
+	// 배그 느낌의 살짝 우상단 시점
 	SpringArmComponent->SetRelativeLocation(FVector(0.f, 50.f, 100.f));
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
@@ -114,6 +118,7 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			&ThisClass::InputLook
 		);
 
+		// 점프는 별도 구현 없이 ACharacter 함수 사용
 		EnhancedInputComponent->BindAction(
 			PlayerCharacterInputConfig->Jump,
 			ETriggerEvent::Triggered,
@@ -292,17 +297,11 @@ void ACSPlayerCharacter::Reload()
 	}
 }
 
+// 추후 CharacterBase 로 옮길 수 있음
 float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                      class AController* EventInstigator, AActor* DamageCauser)
 {
 	float FinalDamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	if (1 == ShowAttackRangedDebug)
-	{
-		UKismetSystemLibrary::PrintString(
-			this, FString::Printf(TEXT("%s has taken damage: %.f"),
-				*GetName(), FinalDamageAmount));
-	}
 
 	return FinalDamageAmount;
 }
@@ -321,13 +320,11 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 			{
 				if (ConsumeBullet())
 				{
-					BeginAttack();
-					TryFire();
+					BeginAttack();	// 애니메이션 재생
+					TryFire();	// 실제 사격
 				}
 			}
-			
 		}
-		
 	}
 }
 
@@ -364,95 +361,96 @@ void ACSPlayerCharacter::TryFire()
 	{
 #pragma region CalculateTargetTransform
 
-		float FocalDistance = 1000.f;
-		FVector FocalLocation, CameraLocation;
-		FRotator CameraRotation;
+		float FocalDistance = 400.f;	// 조준 거리
+		FVector FocalLocation, CameraLocation;	// 초점 위치, 카메라 위치
+		FRotator CameraRotation;	// 카메라 회전값
 
+		// '플레이어의 시점' 을 통해 카메라 위치와 회전 Get
 		GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
+		// 카메라가 바라보는 방향
 		FVector AimDirectionFromCamera = CameraRotation.Vector().GetSafeNormal();
+		// 조준점 위치 계산
 		FocalLocation = CameraLocation + (AimDirectionFromCamera * FocalDistance);
 
-		FTransform TargetTransform(CameraRotation, FocalLocation);
+		// 무기 위치를 소켓 위치로 확인
+		FName WeaponSocketName = TEXT("WeaponSocket");
+		FVector WeaponLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
+
+		// 최종 조준점 위치
+		FVector FinalFocalLocation =
+			FocalLocation + (((WeaponLocation - FocalLocation) | AimDirectionFromCamera) * AimDirectionFromCamera);
+
+		FTransform TargetTransform(CameraRotation, FinalFocalLocation);
 
 		if (1 == ShowAttackRangedDebug)
 		{
-			DrawDebugSphere(GetWorld(), FocalLocation, 5.f, 16, FColor::Red, false, 10.f);
+			DrawDebugSphere(GetWorld(), WeaponLocation, 5.f, 16, FColor::Red, false, 10.f);
 			DrawDebugSphere(GetWorld(), CameraLocation, 5.f, 16, FColor::Yellow, false, 10.f);
+			DrawDebugSphere(GetWorld(), FinalFocalLocation, 5.f, 16, FColor::Magenta, false, 10.f);
 
-			DrawDebugLine(GetWorld(), CameraLocation, FocalLocation, FColor::Blue, false, 10.f, 0, 5.f);
+			DrawDebugLine(GetWorld(), FocalLocation, WeaponLocation, FColor::Yellow, false, 10.f, 0, 5.f);
+			DrawDebugLine(GetWorld(), CameraLocation, FinalFocalLocation, FColor::Blue, false, 10.f, 0, 5.f);
+			DrawDebugLine(GetWorld(), WeaponLocation, FinalFocalLocation, FColor::Red, false, 10.f, 0, 5.f);
 		}
 
 #pragma endregion
 
 #pragma region PerformLineTracing
 
-		APlayerController* PlayerController =
-			Cast<APlayerController>(GetController());
-		int32 ViewportSizeX, ViewportSizeY;
-		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
+		FVector StartLocation = WeaponLocation;
+		FVector EndLocation = TargetTransform.GetLocation() + (BulletDirection * GetMaxShootRange());
 
-		FVector2D CrosshairLocation(ViewportSizeX / 2.f, ViewportSizeY / 2.f);
+		FHitResult HitResult;
+		FCollisionQueryParams TraceParams(NAME_None, true, this);	// 의도적으로 시작부터 겹쳐도 사격가능하게 설정
+		TraceParams.AddIgnoredActor(this);	// 자기 자신 무시, 이후 무기나 소켓으로 바꿔야 할 수 있음
 
-		FVector CrosshairWorldPosition, CrosshairWorldDirection;
-		if (PlayerController->DeprojectScreenPositionToWorld(
-			CrosshairLocation.X,
-			CrosshairLocation.Y,
-			CrosshairWorldPosition,
-			CrosshairWorldDirection))
+		bool IsCollided = GetWorld()->LineTraceSingleByChannel(
+			HitResult,
+			StartLocation,
+			EndLocation,
+			ECC_SHOOT,
+			TraceParams
+		);
+
+		// 충돌이 없을 경우
+		if (IsCollided == false)
 		{
-			FVector WeaponOffset(50.f, 90.f, 180.f);
-			FVector StartLocation = GetMesh()->GetComponentLocation() +
-				GetMesh()->GetForwardVector() * WeaponOffset.X +
-					GetMesh()->GetRightVector() * WeaponOffset.Y +
-						GetMesh()->GetUpVector() * WeaponOffset.Z;
+			HitResult.TraceStart = StartLocation;
+			HitResult.TraceEnd = EndLocation;
+		}
 
-			FVector EndLocation = CrosshairWorldPosition +
-				CrosshairWorldDirection * GetMaxShootRange();
-
-			FHitResult HitResult;
-			FCollisionQueryParams TraceParams(NAME_None, true, this);
-			TraceParams.AddIgnoredActor(this);
-
-			bool IsCollided = GetWorld()->LineTraceSingleByChannel(
-				HitResult,
-				StartLocation,
-				EndLocation,
-				ECC_SHOOT,
-				TraceParams
-			);
-			if (!IsCollided)
-			{
-				HitResult.TraceStart = StartLocation;
-				HitResult.TraceEnd = EndLocation;
-			}
-
-			if (2 == ShowAttackRangedDebug)
-			{
-				if (IsCollided)
-				{
-					DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-					DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 16, FColor::Green, false, 10.f);
-					DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
-				}
-				else
-				{
-					DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-					DrawDebugSphere(GetWorld(), EndLocation, 10.f, 16, FColor::Green, false, 10.f);
-					DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
-				}
-			}
-#pragma endregion
-
+		// 실제 발사체 충돌 검사
+		if (2 == ShowAttackRangedDebug)
+		{
 			if (IsCollided)
 			{
-				ACSCharacterBase* HittedCharacter =
-					Cast<ACSCharacterBase>(HitResult.GetActor());
-				if (IsValid(HittedCharacter))
-				{
-					FDamageEvent DamageEvent;
-					HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
-				}
+				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 5.f, 16, FColor::Green, false, 10.f);
+
+				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
+			}
+			else
+			{
+				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
+				DrawDebugSphere(GetWorld(), EndLocation, 5.f, 16, FColor::Green, false, 10.f);
+
+				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
+			}
+		}
+
+#pragma endregion
+
+		// 착탄 성공 시 TakeDamage
+		if (IsCollided)
+		{
+			ACSCharacterBase* HittedCharacter =
+				Cast<ACSCharacterBase>(HitResult.GetActor());
+			if (IsValid(HittedCharacter))
+			{
+				FDamageEvent DamageEvent;
+				HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 			}
 		}
 		
