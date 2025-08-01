@@ -51,3 +51,16 @@ void UCSPlayerAnimInstance::AnimNotify_PostDead()
 		OnPostDead.Broadcast();
 	}
 }
+
+void UCSPlayerAnimInstance::AnimNotify_Fire()
+{
+	if (IsValid(OwnerCharacter))
+	{
+		ACSPlayerCharacter* PlayerCharacter =
+			Cast<ACSPlayerCharacter>(OwnerCharacter);
+		if (IsValid(PlayerCharacter))
+		{
+			PlayerCharacter->TryFire();
+		}
+	}
+}
