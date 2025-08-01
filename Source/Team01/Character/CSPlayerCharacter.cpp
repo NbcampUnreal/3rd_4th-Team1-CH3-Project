@@ -510,7 +510,7 @@ void ACSPlayerCharacter::TryFire()
 		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
 
 		FVector RightVector = TargetTransform.GetUnitAxis(EAxis::Y);
-		BulletDirection += RightVector * 0.1f;
+		BulletDirection += RightVector * 0.08f;
 		BulletDirection = BulletDirection.GetSafeNormal();
 		
 		FVector StartLocation = WeaponLocation;
