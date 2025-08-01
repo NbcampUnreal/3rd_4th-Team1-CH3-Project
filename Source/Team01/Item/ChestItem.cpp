@@ -46,6 +46,11 @@ void AChestItem::OpenChest()
 	bIsOpened = true;
 	UE_LOG(LogTemp, Warning, TEXT("box was opened"));
 
+	if (OpenSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, OpenSound, GetActorLocation());
+	}
+
 	TargetLidRotation = FRotator(-110.f, 0.f, 0.f);
 	GetWorld()->GetTimerManager().SetTimer(LidOpenTimer, this, &AChestItem::TickLidRotation, 0.01f, true);
 

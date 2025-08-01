@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* LidMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	USoundBase* OpenSound;
+
 	FTimerHandle LidOpenTimer;
 	FRotator TargetLidRotation;
 

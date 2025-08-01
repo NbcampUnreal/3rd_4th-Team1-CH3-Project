@@ -12,6 +12,8 @@ class TEAM01_API APotionItem : public ABaseItem
 public:
     APotionItem();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+    USoundBase* PickupSound;
 
     virtual void OnItemOverlap_Implementation(AActor* OverlapActor) override;
 
