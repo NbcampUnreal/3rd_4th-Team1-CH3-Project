@@ -22,6 +22,9 @@ private:
 	UFUNCTION()
 	void AnimNotify_PostDead();
 
+	UFUNCTION()
+	void AnimNotify_Fire();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ACSPlayerCharacter> OwnerCharacter;

@@ -94,6 +94,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
+	void TryFire(); // 실제 사격 로직
+
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	
@@ -107,14 +109,13 @@ private:
 	void InputReload(const FInputActionValue& InValue);
 
 	bool ConsumeBullet(); // 총알 소비 로직
-	void TryFire(); // 실제 사격 로직
 
 protected:
 	int32 Bullet;
 	int32 MaxBullet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (Units = cm))
-	float MaxShootRange = 20000.f;
+	float MaxShootRange = 10000.f;
 
 	
 #pragma endregion
@@ -141,6 +142,8 @@ protected:
 	TObjectPtr<UAnimMontage> ReloadMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> DeathMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> OnHitMontage;
 
 	// EndAttack 으로 전달하기 위한 delegate
 	FOnMontageEnded OnShootMontageEndedDelegate;
