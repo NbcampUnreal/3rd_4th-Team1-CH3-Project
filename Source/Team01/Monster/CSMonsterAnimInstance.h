@@ -22,6 +22,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
 	bool bIsAttack;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
+	bool bIsHit;
+
 	UPROPERTY()
 	class APawn* OwnerPawn;
 };

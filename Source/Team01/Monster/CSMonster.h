@@ -30,6 +30,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAttack;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsHit;
+
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float SightRange;
 
@@ -50,6 +53,13 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Dead")
 	UAnimMontage* DeadMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hit")
+	UAnimMontage* HitMontage;
+
+	UFUNCTION()
+	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+		AController* InstigatedBy, AActor* DamageCauser);
 
 	UPROPERTY()
 	APawn* PlayerPawn;

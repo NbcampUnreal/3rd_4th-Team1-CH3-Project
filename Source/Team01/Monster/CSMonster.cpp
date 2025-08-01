@@ -15,6 +15,7 @@ ACSMonster::ACSMonster()
 
 	bIsDead = false;
 	bIsAttack = false;
+	bIsHit = false;
 
 	MaxHP = 40.0f;
 	CurrentHP = MaxHP;
@@ -33,6 +34,8 @@ ACSMonster::ACSMonster()
 void ACSMonster::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OnTakeAnyDamage.AddDynamic(this, &ACSMonster::OnTakeDamage);
 
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
@@ -121,3 +124,13 @@ void ACSMonster::Die()
 	SetLifeSpan(5.0f);
 }
 
+void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
+{
+
+	bIsHit = true;
+	if (HitMontage)
+	{
+		PlayAnimMontage(HitMontage);
+	}
+}

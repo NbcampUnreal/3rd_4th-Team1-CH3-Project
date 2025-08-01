@@ -18,5 +18,6 @@ void UCSMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		bIsDead = Monster->bIsDead;
 		bIsAttack = Monster->bIsAttack;
+		bIsHit = Monster->bIsHit;
 	}
 }
