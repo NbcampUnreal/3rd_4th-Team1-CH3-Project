@@ -70,6 +70,13 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 				SetCurrentState(ECharacterState::HitReaction);
 				GetCharacterMovement()->StopMovementImmediately();
 
+				ACSBossAIController* AIController = Cast<ACSBossAIController>(GetController());
+				if (AIController)
+				{
+					AIController->StopMovement();
+				}
+
+
 				UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 				if (AnimInstance && HitReactMontage)
 				{
@@ -100,7 +107,7 @@ void ACSBossMonster::Die()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// AI 로직을 정지시킵니다.
-	AAIController* AIController = Cast<AAIController>(GetController());
+	ACSBossAIController* AIController = Cast<ACSBossAIController>(GetController());
 	if (AIController && AIController->GetBrainComponent())
 	{
 		AIController->GetBrainComponent()->StopLogic(TEXT("Boss is Dead"));
