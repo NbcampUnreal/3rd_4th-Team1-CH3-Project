@@ -115,7 +115,7 @@ protected:
 	int32 MaxBullet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (Units = cm))
-	float MaxShootRange = 10000.f;
+	float MaxShootRange = 12000.f;
 
 	
 #pragma endregion

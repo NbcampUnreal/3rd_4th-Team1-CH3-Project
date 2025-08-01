@@ -509,17 +509,17 @@ void ACSPlayerCharacter::TryFire()
 
 		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
 
+		// 우측 탄도학 적용
 		FVector RightVector = TargetTransform.GetUnitAxis(EAxis::Y);
-		BulletDirection += RightVector * 0.08f;
+		BulletDirection += RightVector * 0.05f;
 		BulletDirection = BulletDirection.GetSafeNormal();
 		
 		FVector StartLocation = WeaponLocation;
-		//FVector EndLocation = TargetTransform.GetLocation() + (BulletDirection * GetMaxShootRange());
 		FVector EndLocation = StartLocation + BulletDirection * GetMaxShootRange();
 
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams(NAME_None, true, this);	// 의도적으로 시작부터 겹쳐도 사격가능하게 설정
-		TraceParams.AddIgnoredActor(this);	// 자기 자신 무시, 이후 무기나 소켓으로 바꿔야 할 수 있음
+		TraceParams.AddIgnoredActor(this);	// 자기 자신 무시
 
 		bool IsCollided = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
