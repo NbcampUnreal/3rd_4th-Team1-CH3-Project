@@ -40,13 +40,13 @@ void ACSMonster::BeginPlay()
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
-	{
-		UCS_WBP_EnemyHPBar* HPWidget = Cast<UCS_WBP_EnemyHPBar>(Widget);
-		if (HPWidget)
-		{
-			HPWidget->SetHPBarPercent(CurrentHP / MaxHP);
-		}
-	}
+    	{
+    		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+    		if (HPBar)
+    		{
+    			HPBar->UpdateHP(CurrentHP / MaxHP);
+    		}
+    	}
 }
 
 void ACSMonster::Tick(float DeltaTime)

@@ -8,3 +8,8 @@ void UCS_WBP_EnemyHPBar::SetHPBarPercent(float Percent)
 		HPBar->SetPercent(Percent);
 	}
 }
+
+void UCS_WBP_EnemyHPBar::UpdateHP(float NewPercent)
+{
+	SetHPBarPercent(NewPercent);
+}

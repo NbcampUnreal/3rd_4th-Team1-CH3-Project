@@ -30,6 +30,11 @@ void ACSBossMonster::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentHP = MaxHP;
+
+	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
+	{
+		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+	}
 }
 
 
@@ -118,6 +123,11 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 		CurrentHP -= FinalDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
+		if (HPBar)
+		{
+			HPBar->UpdateHP(CurrentHP / MaxHP);
+		}
+		
 		if (CurrentHP <= 0.f)
 		{
 			Die();

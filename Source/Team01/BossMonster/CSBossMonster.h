@@ -47,4 +47,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> HPBarComponent;
+
+	UPROPERTY()
+	TObjectPtr<class UCS_WBP_EnemyHPBar> HPBar;
 };
