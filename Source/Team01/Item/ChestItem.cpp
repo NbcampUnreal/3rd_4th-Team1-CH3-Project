@@ -51,7 +51,7 @@ void AChestItem::OpenChest()
 		UGameplayStatics::PlaySoundAtLocation(this, OpenSound, GetActorLocation());
 	}
 
-	TargetLidRotation = FRotator(-110.f, 0.f, 0.f);
+	TargetLidRotation = FRotator(0.f, 0.f, -110.f);
 	GetWorld()->GetTimerManager().SetTimer(LidOpenTimer, this, &AChestItem::TickLidRotation, 0.01f, true);
 
 }
