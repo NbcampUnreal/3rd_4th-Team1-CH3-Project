@@ -36,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float AttackRange;
 
+	UPROPERTY(EditInstanceOnly, Category = "Patrol Point")
+	TArray<TObjectPtr<AActor>> PatrolPoints;
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UWidgetComponent> HPBarComponent;

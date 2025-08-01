@@ -63,15 +63,18 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 
 		if (bNeedNewTarget)
 		{
-			TArray<AActor*> PatrolPoints;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACSMonsterTargetPoint::StaticClass(), PatrolPoints);
-
-			if (PatrolPoints.Num() > 0)
+			ACSMonster* MonsterTarget = Cast<ACSMonster>(ControlledPawn);
+			if (MonsterTarget && MonsterTarget->PatrolPoints.Num() > 0)
 			{
-				AActor* NewTarget = PatrolPoints[FMath::RandRange(0, PatrolPoints.Num() - 1)];
+				AActor* NewTarget = Monster->PatrolPoints[FMath::RandRange(0, Monster->PatrolPoints.Num() - 1)];
 				Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 			}
 		}
+	}
+
+	if (bDetectedPlayer && !bInAttackRange)
+	{
+		OwnerComp.GetAIOwner()->MoveToActor(Player, Monster->AttackRange - 10.f);
 	}
 
 	if (Monster->GetCurrentHP() <= 0.f)
