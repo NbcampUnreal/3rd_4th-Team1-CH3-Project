@@ -25,7 +25,6 @@ UCSBTService_BossDetectPlayer::UCSBTService_BossDetectPlayer()
 
 void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Detect Player 서비스 실행 중!"));
 
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 

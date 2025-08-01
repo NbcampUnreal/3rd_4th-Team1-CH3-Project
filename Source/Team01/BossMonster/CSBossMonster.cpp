@@ -11,9 +11,9 @@
 
 ACSBossMonster::ACSBossMonster()
 {
-	MaxHP = 140.0f;
+	MaxHP = 200.0f;
 	CurrentHP = MaxHP;
-	AttackDamage = 1.0f;
+	AttackDamage = 20.0f;
 
 	AIControllerClass = ACSBossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -43,7 +43,6 @@ void ACSBossMonster::BeginAttack() //공격 시작 로직
 
 void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped) //공격 종료 로직
 {
-	// 변경: bIsNowAttacking = false; 대신 상태를 'Idle'로 설정합니다.
 	SetCurrentState(ECharacterState::Idle);
 
 
@@ -54,17 +53,14 @@ void ACSBossMonster::AttackHitCheck()
 {
 	TArray<FHitResult> OutHitResults;
 	FVector Start = GetActorLocation();
-	float Radius = 300.0f; // 공격 판정 반지름
+	float Radius = 300.0f;
 
-	// Pawn 타입의 오브젝트만 감지하도록 설정
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
-	// 자기 자신은 판정에서 제외
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	// 구체(Sphere) 형태로 충돌을 감지
 	bool bIsHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
 		GetWorld(),
 		Start, Start,
@@ -72,22 +68,28 @@ void ACSBossMonster::AttackHitCheck()
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration, // 디버깅용으로 판정 범위를 잠시 보여줍니다.
+		EDrawDebugTrace::None,
 		OutHitResults,
 		true);
 
 	if (bIsHit)
 	{
+		// 이번 공격에서 이미 데미지를 입은 액터들을 기록할 배열입니다.
+		TArray<AActor*> DamagedActors;
+
 		for (const FHitResult& HitResult : OutHitResults)
 		{
-			// 맞은 대상이 ACSPlayerCharacter가 맞는지 확인
 			if (ACSPlayerCharacter* Player = Cast<ACSPlayerCharacter>(HitResult.GetActor()))
 			{
-				// 보스의 정면 방향과 플레이어 방향을 비교해서, 전방에 있을 때만 데미지를 줌
+				// 이미 데미지를 입혔던 액터인지 확인하고, 입혔다면 건너뜁니다.
+				if (DamagedActors.Contains(Player))
+				{
+					continue;
+				}
+
 				FVector DirectionToPlayer = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 				float DotProduct = FVector::DotProduct(GetActorForwardVector(), DirectionToPlayer);
 
-				// DotProduct > 0.5f 는 약 120도 전방 부채꼴 범위를 의미
 				if (DotProduct > 0.5f)
 				{
 					UGameplayStatics::ApplyDamage(
@@ -96,6 +98,9 @@ void ACSBossMonster::AttackHitCheck()
 						GetController(),
 						this,
 						nullptr);
+
+					// 데미지를 입혔다고 기록합니다.
+					DamagedActors.Add(Player);
 				}
 			}
 		}
