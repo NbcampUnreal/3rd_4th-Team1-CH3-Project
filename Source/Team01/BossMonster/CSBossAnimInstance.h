@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Team01/Character/CSCharacterBase.h"
 #include "CSBossAnimInstance.generated.h"
 
 UCLASS()
@@ -23,4 +24,8 @@ protected:
 	// 캐릭터의 현재 속도를 저장할 변수입니다. 블루프린트에서 읽기만 가능하도록 설정
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 	float Speed;
+
+	//현재 상태를 확인
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	ECharacterState CurrentState;
 };

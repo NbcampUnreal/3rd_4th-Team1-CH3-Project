@@ -13,6 +13,8 @@
 #include "../Team01.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "ItemInterface.h"
+#include "../Character/Controller/CSPlayerController.h"
+#include "../Ui/CS_WBP_HUD.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 
 
@@ -227,6 +229,18 @@ void ACSPlayerCharacter::RecoverHealth(float Amount)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + Amount, 0.f, MaxHP);
 	UE_LOG(LogTemp, Warning, TEXT("+HP: %.0f / %.0f"), CurrentHP, MaxHP);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ACSPlayerController* CSController = Cast<ACSPlayerController>(PC))
+		{
+			if (UCS_WBP_HUD* HUD = CSController->GetHUDWidget()) // HUD 접근
+			{
+				HUD->UpdateHP(CurrentHP / MaxHP); // 비율로 갱신
+				UE_LOG(LogTemp, Warning, TEXT("[HUD] 체력바 %.2f%%로 갱신됨"), (CurrentHP / MaxHP) * 100.f);
+			}
+		}
+	}
 }
 
 void ACSPlayerCharacter::InputMove(const FInputActionValue& InValue)
@@ -370,20 +384,32 @@ float ACSPlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	}
 	else
 	{
-		FName PivotBoneName = FName(TEXT("pelvis"));
-		GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
-		TargetRagdollBlendWeight = 1.f;
+		// 부분 레그돌 판정 경우
+		// FName PivotBoneName = FName(TEXT("pelvis"));
+		// GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
+		// TargetRagdollBlendWeight = 1.f;
+		//
+		// HittedRagdollRestoreTimerDelegate.BindUObject(
+		// 	this, &ThisClass::OnHittedRagdollRestoreTimerElapsed
+		// );
+		//
+		// GetWorldTimerManager().SetTimer(
+		// 	HittedRagdollRestoreTimer,
+		// 	HittedRagdollRestoreTimerDelegate,
+		// 	1.f,
+		// 	false
+		// );
 
-		HittedRagdollRestoreTimerDelegate.BindUObject(
-			this, &ThisClass::OnHittedRagdollRestoreTimerElapsed
-		);
-
-		GetWorldTimerManager().SetTimer(
-			HittedRagdollRestoreTimer,
-			HittedRagdollRestoreTimerDelegate,
-			1.f,
-			false
-		);
+		// 피격 애니메이션 재생 경우
+		UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+		
+		if (IsValid(AnimInstance) && IsValid(OnHitMontage)
+			&& AnimInstance->Montage_IsPlaying(OnHitMontage) == false)
+		{
+			AnimInstance->Montage_Play(OnHitMontage);
+		}
 	}
 
 	return FinalDamageAmount;
@@ -404,7 +430,7 @@ void ACSPlayerCharacter::InputShoot(const FInputActionValue& InValue)
 				if (ConsumeBullet())
 				{
 					BeginAttack();	// 애니메이션 재생
-					TryFire();	// 실제 사격
+					
 				}
 			}
 		}
@@ -456,8 +482,8 @@ void ACSPlayerCharacter::TryFire()
 		// 조준점 위치 계산
 		FocalLocation = CameraLocation + (AimDirectionFromCamera * FocalDistance);
 
-		// 무기 위치를 소켓 위치로 확인
-		FName WeaponSocketName = TEXT("WeaponSocket");
+		// 무기 위치를 확인 => 발사 위치 지정
+		FName WeaponSocketName = TEXT("FX_Gun_Barrel");
 		FVector WeaponLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
 
 		// 최종 조준점 위치
@@ -482,8 +508,14 @@ void ACSPlayerCharacter::TryFire()
 #pragma region PerformLineTracing
 
 		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
+
+		FVector RightVector = TargetTransform.GetUnitAxis(EAxis::Y);
+		BulletDirection += RightVector * 0.08f;
+		BulletDirection = BulletDirection.GetSafeNormal();
+		
 		FVector StartLocation = WeaponLocation;
-		FVector EndLocation = TargetTransform.GetLocation() + (BulletDirection * GetMaxShootRange());
+		//FVector EndLocation = TargetTransform.GetLocation() + (BulletDirection * GetMaxShootRange());
+		FVector EndLocation = StartLocation + BulletDirection * GetMaxShootRange();
 
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams(NAME_None, true, this);	// 의도적으로 시작부터 겹쳐도 사격가능하게 설정
