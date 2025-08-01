@@ -2,15 +2,18 @@
 #include "CSBossAIController.h"
 #include "Components/CapsuleComponent.h"
 #include "BrainComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Team01/Character/CSPlayerCharacter.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
 ACSBossMonster::ACSBossMonster()
 {
-	MaxHP = 200.0f;
+	MaxHP = 140.0f;
 	CurrentHP = MaxHP;
-	AttackDamage = 100.0f;
+	AttackDamage = 1.0f;
 
 	AIControllerClass = ACSBossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -45,6 +48,58 @@ void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped) //공�
 
 
 	UE_LOG(LogTemp, Log, TEXT("Boss has finished its attack. Interrupted: %s"), bInterruped ? TEXT("Yes") : TEXT("No"));
+}
+
+void ACSBossMonster::AttackHitCheck()
+{
+	TArray<FHitResult> OutHitResults;
+	FVector Start = GetActorLocation();
+	float Radius = 300.0f; // 공격 판정 반지름
+
+	// Pawn 타입의 오브젝트만 감지하도록 설정
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	// 자기 자신은 판정에서 제외
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	// 구체(Sphere) 형태로 충돌을 감지
+	bool bIsHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+		GetWorld(),
+		Start, Start,
+		Radius,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration, // 디버깅용으로 판정 범위를 잠시 보여줍니다.
+		OutHitResults,
+		true);
+
+	if (bIsHit)
+	{
+		for (const FHitResult& HitResult : OutHitResults)
+		{
+			// 맞은 대상이 ACSPlayerCharacter가 맞는지 확인
+			if (ACSPlayerCharacter* Player = Cast<ACSPlayerCharacter>(HitResult.GetActor()))
+			{
+				// 보스의 정면 방향과 플레이어 방향을 비교해서, 전방에 있을 때만 데미지를 줌
+				FVector DirectionToPlayer = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+				float DotProduct = FVector::DotProduct(GetActorForwardVector(), DirectionToPlayer);
+
+				// DotProduct > 0.5f 는 약 120도 전방 부채꼴 범위를 의미
+				if (DotProduct > 0.5f)
+				{
+					UGameplayStatics::ApplyDamage(
+						Player,
+						GetAttackDamage(),
+						GetController(),
+						this,
+						nullptr);
+				}
+			}
+		}
+	}
 }
 
 //데미지를 받았을 때 호출될 함수

@@ -24,6 +24,8 @@ public:
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
 
+    void AttackHitCheck();
+
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
     void Die(); //죽었을 때 처리될 함수

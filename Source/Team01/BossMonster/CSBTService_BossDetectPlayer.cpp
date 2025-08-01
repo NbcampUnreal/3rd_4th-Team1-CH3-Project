@@ -47,7 +47,7 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
 
     const float DistanceToPlayer = ControllingPawn->GetDistanceTo(TargetPlayer);
 
-    // ▼▼ 핵심 로직: 인식 범위 안에 있을 때와 아닐 때를 구분함 ▼▼
+    // 핵심 로직: 인식 범위 안에 있을 때와 아닐 때를 구분함
     if (DistanceToPlayer <= DetectRange)
     {
         // [범위 안] 플레이어를 타겟으로 설정하고, 공격 범위 여부를 업데이트
