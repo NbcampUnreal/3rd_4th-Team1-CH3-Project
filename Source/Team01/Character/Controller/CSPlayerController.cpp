@@ -2,6 +2,8 @@
 #include "../Source/Team01/Ui/CS_WBP_HUD.h"
 #include "Blueprint/UserWidget.h"
 #include "CSPlayerCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/TextBlock.h"
 
 ACSPlayerController::ACSPlayerController()
 {
@@ -14,28 +16,51 @@ void ACSPlayerController::BeginPlay()
 	FInputModeGameOnly InputModeGameOnly;
 	SetInputMode(InputModeGameOnly);
 
-	CreateHUD();
+	if (HUDWidget)
+	{
+		HUDWidget->RemoveFromParent();
+		HUDWidget = nullptr;
+	}
+	if (MainMenuWidget)
+	{
+		MainMenuWidget->RemoveFromParent();
+		MainMenuWidget = nullptr;
+	}
+
+	FString CurrentLevelName = GetWorld()->GetMapName();
+	
+	if (CurrentLevelName.Contains(TEXT("MenuLevel")))
+	{
+		ShowMainMenu(false);
+	}
+	else
+	{
+		CreateHUD();
+	}
 }
 
 void ACSPlayerController::CreateHUD()
 {
-	// HUD 위젯 생성
+	if (HUDWidget)
+	{
+		HUDWidget->RemoveFromParent();
+		HUDWidget = nullptr;
+	}
+
 	HUDWidget = CreateWidget<UCS_WBP_HUD>(this, HUDWidgetClass);
 
-	// 유효하면 화면에 표시
 	if (HUDWidget)
 	{
 		HUDWidget->AddToViewport();
 
-		
 		if (ACSPlayerCharacter* MyChar = Cast<ACSPlayerCharacter>(GetPawn()))
 		{
-			// 현재 탄약 표시 초기화
 			HUDWidget->UpdateAmmoText(MyChar->GetBulletCount(), MyChar->GetMaxBulletCount());
-
-			// 탄약 변경 델리게이트 바인딩
 			MyChar->OnBulletChanged.AddDynamic(this, &ACSPlayerController::OnBulletChanged_Handler);
 		}
+
+		bShowMouseCursor = false;
+		SetInputMode(FInputModeGameOnly());
 	}
 }
 
@@ -56,4 +81,63 @@ void ACSPlayerController::OnBulletChanged_Handler(int32 NewBulletCount)
 			HUDWidget->UpdateAmmoText(NewBulletCount, MyChar->GetMaxBulletCount());
 		}
 	}
+}
+
+void ACSPlayerController::ShowMainMenu(bool bIsRestart)
+{
+	// HUD 제거
+	if (HUDWidget)
+	{
+		HUDWidget->RemoveFromParent();
+		HUDWidget = nullptr;
+	}
+
+	// 기존 메뉴 제거
+	if (MainMenuWidget)
+	{
+		MainMenuWidget->RemoveFromParent();
+		MainMenuWidget = nullptr;
+	}
+
+	// 메뉴 생성
+	if (MainMenuWidgetClass)
+	{
+		MainMenuWidget = CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+		if (MainMenuWidget)
+		{
+			MainMenuWidget->AddToViewport();
+			UE_LOG(LogTemp, Warning, TEXT("MainMenuWidget 생성 완료"));
+
+			bShowMouseCursor = true;
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(MainMenuWidget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			SetInputMode(InputMode);
+
+			// 텍스트 버튼 변경
+			if (UTextBlock* ButtonText = Cast<UTextBlock>(MainMenuWidget->GetWidgetFromName(TEXT("StartTEXT"))))
+			{
+				ButtonText->SetText(FText::FromString(bIsRestart ? TEXT("Restart") : TEXT("Start")));
+			}
+		}
+	}
+}
+
+void ACSPlayerController::StartGame()
+{
+	if (MainMenuWidget)
+	{
+		MainMenuWidget->RemoveFromParent();
+		MainMenuWidget = nullptr;
+	}
+
+	// 입력 모드 GameOnly로 설정
+	FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
+
+	// 마우스 커서 숨기기
+	bShowMouseCursor = false;
+
+	UGameplayStatics::OpenLevel(this, FName("MainLevel")); // ← 실제 맵 이름으로 교체
 }

@@ -13,6 +13,8 @@
 #include "../Team01.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "ItemInterface.h"
+#include "../Character/Controller/CSPlayerController.h"
+#include "../Ui/CS_WBP_HUD.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 
 
@@ -227,6 +229,18 @@ void ACSPlayerCharacter::RecoverHealth(float Amount)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + Amount, 0.f, MaxHP);
 	UE_LOG(LogTemp, Warning, TEXT("+HP: %.0f / %.0f"), CurrentHP, MaxHP);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ACSPlayerController* CSController = Cast<ACSPlayerController>(PC))
+		{
+			if (UCS_WBP_HUD* HUD = CSController->GetHUDWidget()) // HUD 접근
+			{
+				HUD->UpdateHP(CurrentHP / MaxHP); // 비율로 갱신
+				UE_LOG(LogTemp, Warning, TEXT("[HUD] 체력바 %.2f%%로 갱신됨"), (CurrentHP / MaxHP) * 100.f);
+			}
+		}
+	}
 }
 
 void ACSPlayerCharacter::InputMove(const FInputActionValue& InValue)

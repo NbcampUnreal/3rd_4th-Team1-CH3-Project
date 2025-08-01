@@ -8,5 +8,7 @@ UCLASS()
 class TEAM01_API ACSGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	ACSGameModeBase();
 };
