@@ -67,10 +67,20 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 '슈퍼아머'처럼 만듭니다.
 			if (GetCurrentState() != ECharacterState::Attacking)
 			{
+				SetCurrentState(ECharacterState::HitReaction);
+				GetCharacterMovement()->StopMovementImmediately();
+
 				UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 				if (AnimInstance && HitReactMontage)
 				{
 					AnimInstance->Montage_Play(HitReactMontage);
+
+					// 몽타주가 끝나면 다시 Idle 상태로 돌아오도록 설정합니다.
+					FOnMontageEnded MontageEndedDelegate;
+					MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted) {
+						SetCurrentState(ECharacterState::Idle);
+						});
+					AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, HitReactMontage);
 				}
 			}
 		}
@@ -85,13 +95,6 @@ void ACSBossMonster::Die()
 	if (GetCurrentState() == ECharacterState::Dead) return;
 
 	SetCurrentState(ECharacterState::Dead);
-
-	// 죽음 몽타주 재생
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && DeathMontage)
-	{
-		AnimInstance->Montage_Play(DeathMontage);
-	}
 
 	// 캡슐 컴포넌트의 충돌을 꺼서 죽은 뒤에 시체가 다른 액터를 막지 않도록 합니다.
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

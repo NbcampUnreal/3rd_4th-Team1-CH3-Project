@@ -21,5 +21,8 @@ void UCSBossAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		// 캐릭터의 속도를 가져와 Speed 변수에 저장
 		Speed = OwningCharacter->GetVelocity().Size();
+
+		// 캐릭터의 현재 상태를 저장
+		CurrentState = OwningCharacter->GetCurrentState();
 	}
 }

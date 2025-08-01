@@ -9,6 +9,7 @@ enum class ECharacterState : uint8
 {
 	Idle,
 	Attacking,
+	HitReaction,
 	Dead
 };
 
