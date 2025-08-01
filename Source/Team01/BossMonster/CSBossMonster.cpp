@@ -174,4 +174,34 @@ void ACSBossMonster::Die()
 	}
 
 	UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
+
+	GetWorld()->GetTimerManager().SetTimer(
+		DeathTimerHandle,
+		this,
+		&ACSBossMonster::GoRagdoll,
+		0.77f,
+		false);
+}
+
+void ACSBossMonster::GoRagdoll()
+{
+	if (GetMesh())
+	{
+		// 스켈레탈 메시의 콜리전 프로파일을 'Ragdoll'로 변경하고,
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		// 물리 시뮬레이션을 활성화합니다.
+		GetMesh()->SetSimulatePhysics(true);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			DisappearTimerHandle,
+			this,
+			&ACSBossMonster::Disappear,
+			3.0f,
+			false);
+	}
+}
+
+void ACSBossMonster::Disappear()
+{
+	Destroy();
 }

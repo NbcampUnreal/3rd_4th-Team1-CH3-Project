@@ -30,6 +30,9 @@ public:
 
     void Die(); //죽었을 때 처리될 함수
 
+    void GoRagdoll(); //죽고나서 자연스럽게 보이기위한 함수
+
+    void Disappear(); //소멸함수
 
     UPROPERTY(EditInstanceOnly, Category = "AI")
     TArray<TObjectPtr<AActor>> PatrolPoints;
@@ -37,6 +40,10 @@ public:
 protected:
 
     virtual void BeginPlay() override;
+
+    FTimerHandle DeathTimerHandle;
+
+    FTimerHandle DisappearTimerHandle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> HPBarComponent;
