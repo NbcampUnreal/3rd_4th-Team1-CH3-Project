@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "../Ui/CS_WBP_EnemyHPBar.h"
 #include "Components/WidgetComponent.h"
 #include "CSMonster.generated.h"
 
@@ -46,6 +47,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UWidgetComponent> HPBarComponent;
 
+	UPROPERTY()
+	TObjectPtr<UCS_WBP_EnemyHPBar> HPBar;
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
