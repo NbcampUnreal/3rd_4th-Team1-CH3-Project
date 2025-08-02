@@ -34,6 +34,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsHit;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsDetectedPlayer;
+
 	UPROPERTY(EditAnywhere, Category = "Monster|Range")
 	float SightRange;
 

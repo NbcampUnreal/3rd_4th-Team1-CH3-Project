@@ -2,6 +2,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "CSMonsterAIController.h"
+#include "CSMonsterBTDecorator.h"
 #include "CSMonster.h"
 #include "CSMonsterTargetPoint.h"
 #include "GameFramework/Character.h"
@@ -40,13 +41,26 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	const bool bIsDead = Monster->GetCurrentHP() <= 0;
 	Blackboard->SetValueAsBool(TEXT("IsDead"), bIsDead);
 
+	if (bInAttackRange)
+	{
+		Monster->bIsAttack = true;
+	}
+	else
+	{
+		Monster->bIsAttack = false;
+	}
+
 	if (bDetectedPlayer)
 	{
 		Blackboard->SetValueAsObject(TEXT("TargetActor"), Player);
 		Blackboard->ClearValue(TEXT("PatrolTarget"));
+
+		Monster->bIsDetectedPlayer = true;
 	}
 	else
 	{
+		Monster->bIsDetectedPlayer = false;
+
 		Blackboard->ClearValue(TEXT("TargetActor"));
 
 		AActor* CurrentPatrolTarget = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("PatrolTarget")));

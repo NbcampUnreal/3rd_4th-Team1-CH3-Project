@@ -8,9 +8,9 @@ UENUM(BlueprintType)
 enum class EAIConditionType : uint8
 {
 	IsDead,
-	IsNotDead,
 	IsAttacking,
-	IsNotAttacking
+	IsHit,
+	IsDetectedPlayer,
 };
 
 UCLASS()

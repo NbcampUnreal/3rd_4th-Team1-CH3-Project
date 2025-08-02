@@ -14,15 +14,16 @@ ACSMonster::ACSMonster()
 	AIControllerClass = ACSMonsterAIController::StaticClass();
 
 	bIsDead = false;
-	bIsAttack = true;
+	bIsAttack = false;
 	bIsHit = false;
+	bIsDetectedPlayer = false;
 
 	MaxHP = 40.0f;
 	CurrentHP = MaxHP;
 	AttackDamage = 10.0f;
 
-	SightRange = 800.0f;
-	AttackRange = 150.0f;
+	SightRange = 2000.0f;
+	AttackRange = 550.0f;
 
 	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
 	HPBarComponent->SetupAttachment(RootComponent);
@@ -61,7 +62,6 @@ float ACSMonster::GetCurrentHP()
 
 void ACSMonster::BeginAttack()
 {
-	if (GetCurrentState() != ECharacterState::Idle) return;
 
 	SetCurrentState(ECharacterState::Attacking);
 
@@ -80,8 +80,6 @@ void ACSMonster::BeginAttack()
 		AIController->StopMovement();
 	}
 
-	bIsAttack = true;
-
 	if (AttackMontage)
 	{
 		PlayAnimMontage(AttackMontage);
@@ -95,8 +93,6 @@ void ACSMonster::BeginAttack()
 
 void ACSMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped)
 {
-	bIsAttack = false;
-
 	SetCurrentState(ECharacterState::Idle);
 }
 
@@ -127,10 +123,18 @@ void ACSMonster::Die()
 void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
+	AAIController* AIController = Cast<AAIController>(GetController());
+
+	if (AIController)
+	{
+		AIController->StopMovement();
+	}
+
 
 	bIsHit = true;
-	if (HitMontage)
-	{
-		PlayAnimMontage(HitMontage);
-	}
+	//if (HitMontage)
+	//{
+	//	PlayAnimMontage(HitMontage);
+	//}
 }
+

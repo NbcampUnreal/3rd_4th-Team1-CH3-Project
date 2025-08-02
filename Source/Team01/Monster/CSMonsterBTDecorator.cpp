@@ -23,14 +23,14 @@ bool UCSMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeComponent& O
 	case EAIConditionType::IsDead:
 		return Monster->bIsDead;
 
-	case EAIConditionType::IsNotDead:
-		return !Monster->bIsDead;
-
 	case EAIConditionType::IsAttacking:
 		return Monster->bIsAttack;
 
-	case EAIConditionType::IsNotAttacking:
-		return !Monster->bIsAttack;
+	case EAIConditionType::IsHit:
+		return Monster->bIsHit;
+
+	case EAIConditionType::IsDetectedPlayer:
+		return Monster->bIsDetectedPlayer;
 
 	default:
 		return false;

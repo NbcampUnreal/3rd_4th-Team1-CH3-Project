@@ -16,7 +16,7 @@ EBTNodeResult::Type UCSMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponent& Ow
 	if (!AIController) return EBTNodeResult::Failed;
 
 	ACSMonster* Monster = Cast<ACSMonster>(AIController->GetPawn());
-	if (!Monster || Monster->bIsAttack) return EBTNodeResult::Failed;
+	if (!Monster) return EBTNodeResult::Failed;
 
 	AIController->StopMovement();
 
