@@ -14,7 +14,7 @@ ACSMonster::ACSMonster()
 	AIControllerClass = ACSMonsterAIController::StaticClass();
 
 	bIsDead = false;
-	bIsAttack = false;
+	bIsAttack = true;
 	bIsHit = false;
 
 	MaxHP = 40.0f;

@@ -37,9 +37,6 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	const bool bDetectedPlayer = Distance <= Monster->SightRange;
 	Blackboard->SetValueAsBool(TEXT("DetectedPlayer"), bDetectedPlayer);
 
-	const bool bIsOutOfAttackRange = Distance > Monster->AttackRange;
-	Blackboard->SetValueAsBool(TEXT("IsOutAttackRange"), bIsOutOfAttackRange);
-
 	const bool bIsDead = Monster->GetCurrentHP() <= 0;
 	Blackboard->SetValueAsBool(TEXT("IsDead"), bIsDead);
 
@@ -70,11 +67,6 @@ void UCSMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 				Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 			}
 		}
-	}
-
-	if (bDetectedPlayer && !bInAttackRange)
-	{
-		OwnerComp.GetAIOwner()->MoveToActor(Player, Monster->AttackRange - 10.f);
 	}
 
 	if (Monster->GetCurrentHP() <= 0.f)
