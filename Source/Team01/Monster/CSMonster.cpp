@@ -84,7 +84,7 @@ void ACSMonster::BeginAttack()
 	{
 		PlayAnimMontage(AttackMontage);
 	}
-
+	
 	if (PlayerPawn)
 	{
 		UGameplayStatics::ApplyDamage(PlayerPawn, AttackDamage, GetController(), this, nullptr);
