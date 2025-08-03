@@ -5,6 +5,8 @@
 #include "CSFireBomb.generated.h"
 
 class UStaticMeshComponent;
+class UParticleSystem;
+class USoundBase;
 
 UCLASS()
 class TEAM01_API ACSFireBomb : public AActor
@@ -23,6 +25,19 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent *StaticMesh;
 
-	
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UProjectileMovementComponent* ProjectileComp;
+
+	void LaunchProjectile(const FVector& Direction, float Speed);
+
+	UPROPERTY(EditAnywhere, Category = "Effect")
+	UParticleSystem* ExplosionEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	USoundBase* ExplosionSound;
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 };

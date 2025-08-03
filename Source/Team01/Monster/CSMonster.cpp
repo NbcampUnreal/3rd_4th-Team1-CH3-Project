@@ -5,6 +5,7 @@
 #include "CSMonsterAIController.h"
 #include "CSMonsterAnimInstance.h"
 #include "AIController.h"
+#include "CSFireBomb.h"
 
 ACSMonster::ACSMonster()
 {
@@ -80,11 +81,8 @@ void ACSMonster::BeginAttack()
 		AIController->StopMovement();
 	}
 
-	if (AttackMontage)
-	{
-		PlayAnimMontage(AttackMontage);
-	}
-	
+	ThrowActor();
+
 	if (PlayerPawn)
 	{
 		UGameplayStatics::ApplyDamage(PlayerPawn, AttackDamage, GetController(), this, nullptr);
@@ -111,11 +109,6 @@ void ACSMonster::Die()
 		AnimInstance->StopAllMontages(0.2f);
 	}
 
-	if (DeadMontage)
-	{
-		PlayAnimMontage(DeadMontage);
-	}
-
 	AIController->UnPossess();
 	SetLifeSpan(5.0f);
 }
@@ -132,9 +125,23 @@ void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageT
 
 
 	bIsHit = true;
-	//if (HitMontage)
-	//{
-	//	PlayAnimMontage(HitMontage);
-	//}
 }
 
+void ACSMonster::ThrowActor()
+{
+	if (!ThrownActorClass) return;
+
+	FVector SpawnLoc = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0, 0, 50.f);
+	FRotator SpawnRot = GetActorRotation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	if (auto* ThrownActor = GetWorld()->SpawnActor<ACSFireBomb>(ThrownActorClass, SpawnLoc, SpawnRot, SpawnParams))
+	{
+		FVector ThrowDir = GetActorForwardVector() + FVector(0, 0.0f, 0.3f);
+		ThrowDir.Normalize();
+
+		ThrownActor->LaunchProjectile(ThrowDir, 1200.f);
+	}
+}

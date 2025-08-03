@@ -67,6 +67,12 @@ private:
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TSubclassOf<AActor> ThrownActorClass;
+
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+	void ThrowActor();
+
 	UPROPERTY()
 	APawn* PlayerPawn;
 	
