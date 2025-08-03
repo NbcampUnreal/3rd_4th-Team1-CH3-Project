@@ -24,7 +24,7 @@ public:
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterruped) override;
 
-    void AttackHitCheck();
+    void AttackHitCheck(); 
 
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -35,7 +35,7 @@ public:
     void Disappear(); //소멸함수
 
     UPROPERTY(EditInstanceOnly, Category = "AI")
-    TArray<TObjectPtr<AActor>> PatrolPoints;
+    TArray<TObjectPtr<AActor>> PatrolPoints; //패트롤 위치 타겟 포인트를 저장하는 Array
 
 protected:
 
