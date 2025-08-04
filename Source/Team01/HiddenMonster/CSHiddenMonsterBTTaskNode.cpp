@@ -1,25 +1,25 @@
-#include "CSMonsterBTTaskNode.h"
+#include "CSHiddenMonsterBTTaskNode.h"
 #include "AIController.h"
-#include "CSMonster.h"
+#include "CSHiddenMonster.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
-UCSMonsterBTTaskNode::UCSMonsterBTTaskNode()
+UCSHiddenMonsterBTTaskNode::UCSHiddenMonsterBTTaskNode()
 {
 	NodeName = TEXT("Attack Task");
 }
 
-EBTNodeResult::Type UCSMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UCSHiddenMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!AIController) return EBTNodeResult::Failed;
 
-	ACSMonster* Monster = Cast<ACSMonster>(AIController->GetPawn());
+	ACSHiddenMonster* Monster = Cast<ACSHiddenMonster>(AIController->GetPawn());
 	if (!Monster) return EBTNodeResult::Failed;
 
 	AIController->StopMovement();
 
-	Monster->BeginAttack();
+	Monster->bIsAttack = true;
 
 	return EBTNodeResult::Succeeded;
 }

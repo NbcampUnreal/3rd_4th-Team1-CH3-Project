@@ -6,6 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "CSMonster.generated.h"
 
+class UStaticMeshComponent;
+
 UCLASS()
 class TEAM01_API ACSMonster : public ACSCharacterBase
 {
@@ -45,6 +47,9 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	UStaticMeshComponent* SightCone;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "UI")
