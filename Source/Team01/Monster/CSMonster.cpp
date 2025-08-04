@@ -32,6 +32,7 @@ ACSMonster::ACSMonster()
 	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
 	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	HPBarComponent->SetVisibility(false);
 }
 
 void ACSMonster::BeginPlay()
@@ -145,6 +146,20 @@ void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageT
 	bIsHit = true;
 
 	CurrentHP -= Damage;
+
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(true);
+		
+		GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+		{
+			if (HPBarComponent)
+			{
+				HPBarComponent->SetVisibility(false);
+			}
+		}, 3.0f, false);
+	}
 	
 	if (HPBar)
 	{

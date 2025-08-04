@@ -60,6 +60,8 @@ protected:
 
 	UPROPERTY()
 	AController* LastInstigator = nullptr;
+	
+	FTimerHandle HPHideTimerHandle;
 private:
 
 	UFUNCTION()

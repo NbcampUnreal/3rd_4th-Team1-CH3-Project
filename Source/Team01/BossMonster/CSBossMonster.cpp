@@ -27,6 +27,7 @@ ACSBossMonster::ACSBossMonster()
 	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HPBarComponent->SetDrawSize(FVector2D(200.f, 25.f)); // 보스는 약간 더 큼직하게
 	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
+	HPBarComponent->SetVisibility(false);
 }
 
 void ACSBossMonster::BeginPlay()
@@ -115,7 +116,21 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	{
 		CurrentHP -= FinalDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
-
+		
+		if (HPBarComponent)
+		{
+			HPBarComponent->SetVisibility(true);
+			
+			GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+			GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+			{
+				if (HPBarComponent && GetCurrentState() != ECharacterState::Dead)
+				{
+					HPBarComponent->SetVisibility(false);
+				}
+			}, 3.0f, false);
+		}
+		
 		if (HPBar)
 		{
 			HPBar->UpdateHP(CurrentHP / MaxHP);

@@ -55,6 +55,8 @@ protected:
     FTimerHandle DeathTimerHandle;
 
     FTimerHandle DisappearTimerHandle;
+    
+    FTimerHandle HPHideTimerHandle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> HPBarComponent;
