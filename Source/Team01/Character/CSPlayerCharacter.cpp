@@ -81,6 +81,8 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	
 	MaxBullet = 6;
 	Bullet = MaxBullet;
+
+	Tags.Add("Player");
 	
 #pragma endregion
 }
