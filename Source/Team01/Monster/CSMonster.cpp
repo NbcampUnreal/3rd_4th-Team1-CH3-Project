@@ -1,6 +1,8 @@
 #include "CSMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
+#include "../Ui/CS_WBP_HUD.h"
+#include "../Character/Controller/CSPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CSMonsterAIController.h"
 #include "CSMonsterAnimInstance.h"
@@ -104,6 +106,29 @@ void ACSMonster::Die()
 	}
 
 	AIController->UnPossess();
+
+	if (AnimInstance->IsAnyMontagePlaying())
+	{
+		AnimInstance->StopAllMontages(0.2f);
+	}
+
+	AIController->UnPossess();
+
+	if (LastInstigator)
+	{
+		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(LastInstigator))
+		{
+			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
+			{
+				PlayerController->AddKillCount();
+				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
+				HUD->ShowKillConfirmMessage(TEXT("Kill!!"));
+			}
+		}
+	}
+	
+	SetLifeSpan(5.0f);
+	
 	SetLifeSpan(5.0f);
 }
 
@@ -116,9 +141,23 @@ void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageT
 	{
 		AIController->StopMovement();
 	}
-
-
+	
 	bIsHit = true;
+
+	CurrentHP -= Damage;
+	
+	if (HPBar)
+	{
+		HPBar->UpdateHP(CurrentHP / MaxHP);
+	}
+	
+	LastInstigator = InstigatedBy;
+	
+	if (CurrentHP <= 0.0f && !bIsDead)
+	{
+		Die();
+	}
+
 }
 
 void ACSMonster::ThrowActor()

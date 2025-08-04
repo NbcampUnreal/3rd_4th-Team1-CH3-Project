@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Team01/Character/CSPlayerCharacter.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
+#include "../Ui/CS_WBP_HUD.h"
+#include "../Character/Controller/CSPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -107,6 +109,8 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	LastInstigator = EventInstigator;
+	
 	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
 	{
 		CurrentHP -= FinalDamage;
@@ -215,6 +219,19 @@ void ACSBossMonster::Die()
 
 	UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
 
+	if (LastInstigator)
+	{
+		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(LastInstigator))
+		{
+			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
+			{
+				PlayerController->AddKillCount();
+				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
+				HUD->ShowKillConfirmMessage(TEXT("Boss Kill!!"));
+			}
+		}
+	}
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		DeathTimerHandle,
 		this,

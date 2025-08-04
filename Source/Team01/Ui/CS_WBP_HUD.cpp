@@ -52,6 +52,10 @@ void UCS_WBP_HUD::NativeConstruct()
 		KillConfirm->SetVisibility(ESlateVisibility::Hidden);
 	}
 
+	if (KillLogPanel)
+	{
+		KillLogPanel->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UCS_WBP_HUD::ShowHitMarker()
@@ -142,17 +146,23 @@ void UCS_WBP_HUD::ShowKillConfirmMessage(const FString& Message)
 }
 void UCS_WBP_HUD::AddKillLogEntry(const FString& Killer, const FString& Victim, UTexture2D* Icon)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[KillLog] Function Called"));
+
+	
 	if (KillLogPanel && KillLogEntryClass)
 	{
+		KillLogPanel->SetVisibility(ESlateVisibility::Visible);
+		
 		UCS_WBP_KillLogEntry* NewEntry = CreateWidget<UCS_WBP_KillLogEntry>(this, KillLogEntryClass);
 		if (NewEntry)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[KillLog] Widget Created"));
+
 			NewEntry->SetupKillLog(Killer, Victim, Icon);
 			KillLogPanel->AddChildToVerticalBox(NewEntry);
 
 			UE_LOG(LogTemp, Warning, TEXT("[KillLog] Added: %s -> %s"), *Killer, *Victim);
 
-			// 타이머를 통해 3초 후 삭제
 			FTimerHandle RemoveTimer;
 			GetWorld()->GetTimerManager().SetTimer(RemoveTimer, [NewEntry]()
 			{
@@ -163,5 +173,13 @@ void UCS_WBP_HUD::AddKillLogEntry(const FString& Killer, const FString& Victim, 
 				}
 			}, 3.0f, false);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[KillLog] Failed to create widget!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[KillLog] Panel or EntryClass is nullptr!"));
 	}
 }

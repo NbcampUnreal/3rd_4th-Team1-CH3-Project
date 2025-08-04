@@ -63,7 +63,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<UVerticalBox> KillLogPanel;
 
-	UPROPERTY(EditDefaultsOnly, Category="UI")
+	UPROPERTY(EditDefaultsOnly,  Category="UI")
 	TSubclassOf<UCS_WBP_KillLogEntry> KillLogEntryClass;
 	// 적 처치
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))

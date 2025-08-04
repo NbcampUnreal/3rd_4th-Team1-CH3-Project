@@ -57,6 +57,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UCS_WBP_EnemyHPBar> HPBar;
+
+	UPROPERTY()
+	AController* LastInstigator = nullptr;
 private:
 
 	UFUNCTION()
