@@ -44,6 +44,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State") // 페이즈 2 여부를 저장하는 Bool 변수
     bool bIsInPhase2;
 
+    bool bIsPhaseTransitionPending;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation") // 페이즈 2 진입 애니메이션
     TObjectPtr<UAnimMontage> Phase2TransitionMontage;
 

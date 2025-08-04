@@ -100,9 +100,13 @@ void ACSBossMonster::AttackHitCheck()
 //데미지를 받았을 때 호출될 함수
 float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (GetCurrentState() == ECharacterState::Shouting || GetCurrentState() == ECharacterState::PhaseTransition)
+	{
+		return 0.0f;
+	}
+
 	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	// 변경: !bIsDead 대신 GetIsDead() 함수 또는 상태 직접 비교로 변경합니다.
 	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
 	{
 		CurrentHP -= FinalDamage;
@@ -124,7 +128,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 		}
 		else
 		{
-			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 '슈퍼아머'처럼 만듭니다.
+			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 슈퍼아머 상태
 			if (GetCurrentState() != ECharacterState::Attacking && !bIsInPhase2) // 페이즈 2가 아닐때 라는 조건 추가
 			{
 				SetCurrentState(ECharacterState::HitReaction);
@@ -184,7 +188,7 @@ void ACSBossMonster::EnterPhase2()
 		UGameplayStatics::SpawnEmitterAttached(
 			Phase2TransitionVFX,
 			GetMesh(),
-			NAME_None, // 특정 소켓이 아닌 루트에 붙임
+			TEXT("FX_Root"), // 소켓 이름 지정
 			FVector(EForceInit::ForceInit),
 			FRotator(EForceInit::ForceInit),
 			EAttachLocation::SnapToTarget
