@@ -24,14 +24,17 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UBoxComponent* TriggerZone;
 
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* SpikeDamageZone;
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BaseMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* SpikeMesh;
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
-	FVector SpikeOffset = FVector(0.f, 0.f, 200.f);
+	FVector SpikeOffset = FVector(0.f, 0.f, 300.f);
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
 	float MoveSpeed = 800.f;

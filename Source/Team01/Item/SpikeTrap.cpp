@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
+
 ASpikeTrap::ASpikeTrap()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -21,6 +22,11 @@ ASpikeTrap::ASpikeTrap()
 	SpikeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpikeMesh"));
 	SpikeMesh->SetupAttachment(BaseMesh);
 
+	SpikeDamageZone = CreateDefaultSubobject<UBoxComponent>(TEXT("SpikeDamageZone"));
+	SpikeDamageZone->SetupAttachment(SpikeMesh);
+	SpikeDamageZone->SetCollisionProfileName("Trigger");
+	SpikeDamageZone->SetGenerateOverlapEvents(true);
+
 }
 
 void ASpikeTrap::BeginPlay()
@@ -33,8 +39,8 @@ void ASpikeTrap::BeginPlay()
 	StartLocation = SpikeMesh->GetRelativeLocation();
 	TargetLocation = StartLocation + SpikeOffset;
 	//차이확인
-	UE_LOG(LogTemp, Warning, TEXT("StartLocation: %s"), *StartLocation.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("TargetLocation: %s"), *TargetLocation.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("StartLocation: %s"), *StartLocation.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("TargetLocation: %s"), *TargetLocation.ToString());
 }
 
 void ASpikeTrap::OnTriggerBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -62,7 +68,8 @@ void ASpikeTrap::OnTriggerEnd(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 void ASpikeTrap::MoveSpike()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MoveSpike called"));
+	//UE_LOG(LogTemp, Warning, TEXT("MoveSpike called"));
+
 	FVector Current = SpikeMesh->GetRelativeLocation();
 	FVector Target = bMovingUp ? TargetLocation : StartLocation;
 
@@ -83,12 +90,16 @@ void ASpikeTrap::MoveSpike()
 void ASpikeTrap::ApplyDamage()
 {
 	TArray<AActor*> HitActors;
-	SpikeMesh->GetOverlappingActors(HitActors, ACharacter::StaticClass());
-	UE_LOG(LogTemp, Warning, TEXT("dd: %d"), HitActors.Num());
-
+	SpikeDamageZone->GetOverlappingActors(HitActors, ACharacter::StaticClass());
+	//UE_LOG(LogTemp, Warning, TEXT("overlaping characters: %d"), HitActors.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("SpikeMesh location: %s"), *SpikeMesh->GetComponentLocation().ToString());
 	for (AActor* Victim : HitActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("피격 대상: %s"), *Victim->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *Victim->GetName());
+
+		//UE_LOG(LogTemp, Warning, TEXT("SpikeMesh location: %s"), *SpikeMesh->GetComponentLocation().ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("Player location: %s"), *Victim->GetActorLocation().ToString());
+
 		UGameplayStatics::ApplyDamage(Victim, DamageAmount, GetInstigatorController(), this, nullptr);
 	}
 }
