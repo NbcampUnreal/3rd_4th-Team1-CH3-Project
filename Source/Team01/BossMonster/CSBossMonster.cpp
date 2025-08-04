@@ -2,6 +2,8 @@
 #include "CSBossAIController.h"
 #include "Components/CapsuleComponent.h"
 #include "BrainComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Particles/ParticleSystem.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Team01/Character/CSPlayerCharacter.h"
@@ -35,23 +37,6 @@ void ACSBossMonster::BeginPlay()
 	{
 		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
 	}
-}
-
-
-void ACSBossMonster::BeginAttack() //공격 시작 로직
-{
-	// 변경: bIsNowAttacking = true; 대신 상태를 'Attacking'으로 설정합니다.
-	SetCurrentState(ECharacterState::Attacking);
-	UE_LOG(LogTemp, Log, TEXT("Boss has started its attack!"));
-}
-
-
-void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped) //공격 종료 로직
-{
-	SetCurrentState(ECharacterState::Idle);
-
-
-	UE_LOG(LogTemp, Log, TEXT("Boss has finished its attack. Interrupted: %s"), bInterruped ? TEXT("Yes") : TEXT("No"));
 }
 
 void ACSBossMonster::AttackHitCheck()
@@ -128,6 +113,11 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 			HPBar->UpdateHP(CurrentHP / MaxHP);
 		}
 		
+		if (!bIsInPhase2 && (CurrentHP / MaxHP <= 0.5f))
+		{
+			EnterPhase2(); // 2페이즈 진입
+		}
+
 		if (CurrentHP <= 0.f)
 		{
 			Die();
@@ -135,7 +125,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 		else
 		{
 			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 '슈퍼아머'처럼 만듭니다.
-			if (GetCurrentState() != ECharacterState::Attacking)
+			if (GetCurrentState() != ECharacterState::Attacking && !bIsInPhase2) // 페이즈 2가 아닐때 라는 조건 추가
 			{
 				SetCurrentState(ECharacterState::HitReaction);
 				GetCharacterMovement()->StopMovementImmediately();
@@ -164,6 +154,42 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	}
 
 	return FinalDamage;
+}
+
+void ACSBossMonster::EnterPhase2()
+{
+	if (bIsInPhase2) return; // 이미 2페이즈라면 중복 실행 방지
+
+	bIsInPhase2 = true;
+	SetCurrentState(ECharacterState::PhaseTransition);
+	UE_LOG(LogTemp, Error, TEXT("Boss is entering PHASE 2!"));
+
+	// 2페이즈  몽타주를 재생
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && Phase2TransitionMontage)
+	{
+		AnimInstance->Montage_Play(Phase2TransitionMontage);
+
+		FOnMontageEnded MontageEndedDelegate;
+		MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted) {
+			SetCurrentState(ECharacterState::Idle);
+			});
+		AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, Phase2TransitionMontage);
+	}
+
+	//  2페이즈 전환 파티클(VFX)을 재생
+	if (Phase2TransitionVFX)
+	{
+		// 캐릭터의 발밑(루트 본)에 붙여서 파티클을 생성
+		UGameplayStatics::SpawnEmitterAttached(
+			Phase2TransitionVFX,
+			GetMesh(),
+			NAME_None, // 특정 소켓이 아닌 루트에 붙임
+			FVector(EForceInit::ForceInit),
+			FRotator(EForceInit::ForceInit),
+			EAttachLocation::SnapToTarget
+		);
+	}
 }
 
 //사망 처리 함수

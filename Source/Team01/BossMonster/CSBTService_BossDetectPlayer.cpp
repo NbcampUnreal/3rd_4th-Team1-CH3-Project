@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "Team01/BossMonster/CSBossMonster.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -42,6 +43,11 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
     if (ControllingCharacter)
     {
         BlackboardComp->SetValueAsEnum(TEXT("CurrentState"), (uint8)ControllingCharacter->GetCurrentState());
+    }
+
+    if (ACSBossMonster* Boss = Cast<ACSBossMonster>(ControllingPawn))
+    {
+        BlackboardComp->SetValueAsBool(TEXT("bIsInPhase2"), Boss->GetIsInPhase2());
     }
 
     const float DistanceToPlayer = ControllingPawn->GetDistanceTo(TargetPlayer);
