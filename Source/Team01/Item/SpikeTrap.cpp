@@ -38,8 +38,13 @@ void ASpikeTrap::OnTriggerBegin(UPrimitiveComponent* OverlappedComponent, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Tirgger: %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("Start: %s"), *StartLocation.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *TargetLocation.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Current: %s"), *SpikeMesh->GetRelativeLocation().ToString());
 	if (!OtherActor->ActorHasTag("Player"))
 	{
+
 		return;
 	}
 	bMovingUp = true;
@@ -61,6 +66,7 @@ void ASpikeTrap::OnTriggerEnd(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 void ASpikeTrap::MoveSpike()
 {
+	UE_LOG(LogTemp, Warning, TEXT("MoveSpike called"));
 	FVector Current = SpikeMesh->GetRelativeLocation();
 	FVector Target = bMovingUp ? TargetLocation : StartLocation;
 
