@@ -107,6 +107,8 @@ void ACSPlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	LeftHandIKGoal.GoalTransform = CalculateLeftHandIKGoalTransform();
+
 	CurrentFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaSeconds, 10.f);
 	CameraComponent->SetFieldOfView(CurrentFOV);
 
@@ -645,6 +647,16 @@ void ACSPlayerCharacter::IsDying()
 		
 		AnimInstance->Montage_Play(DeathMontage);
 	}
+}
+
+FTransform ACSPlayerCharacter::CalculateLeftHandIKGoalTransform()
+{
+	FTransform HandLTransform = GetMesh()->GetSocketTransform(TEXT("hand_l"));
+
+	FTransform WeaponLRelativeTransform =
+		FTransform(FRotator(0, 90, 0), FVector(20, 0, 0)); // 손에 총이 잡히는 상대 위치/회전
+
+	return WeaponLRelativeTransform * HandLTransform; // hand_l 기준으로 weapon_l의 목표 위치 계산
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()

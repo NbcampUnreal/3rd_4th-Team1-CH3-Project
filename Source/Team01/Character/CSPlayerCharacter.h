@@ -14,6 +14,24 @@ class UAnimMontage;
 // 잔탄 확인을 위한 Delegate 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBulletChanged, int32, NewBulletCount);
 
+// IK Goal 데이터를 위한 구조체 (위치, 회전)
+USTRUCT(BlueprintType)
+struct FIKGoalData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "IK")
+	FTransform GoalTransform; // IK Goal의 Transform (위치, 회전, 스케일)
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "IK")
+	float Alpha; // IK Goal의 적용 강도 (0.0 = 미적용, 1.0 = 완전 적용)
+
+	FIKGoalData()
+	: GoalTransform(FTransform::Identity)
+	, Alpha(1.0f)
+	{}
+};
+
 UCLASS()
 class TEAM01_API ACSPlayerCharacter : public ACSCharacterBase
 {
@@ -135,7 +153,13 @@ public:
 	UFUNCTION()
 	void IsDying();
 
+	// IK Rig 노드에서 사용할 Left Hand IK Goal 데이터
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "IK")
+	FIKGoalData LeftHandIKGoal;
+
 protected:
+	FTransform CalculateLeftHandIKGoalTransform();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAnimMontage> ShootMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
