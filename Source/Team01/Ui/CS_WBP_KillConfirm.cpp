@@ -16,20 +16,21 @@ void UCS_WBP_KillConfirm::NativeConstruct()
 // 킬 메시지를 갱신합니다 ("헤드샷!" 등 텍스트로 설정 가능)
 void UCS_WBP_KillConfirm::ShowKillMessage(const FString& Message)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[KillConfirm] ShowKillMessage called"));
+
 	if (KillConfirm)
 	{
 		KillConfirm->SetText(FText::FromString(Message));
 		SetVisibility(ESlateVisibility::Visible);
 
-		// 메시지 보여준 뒤 제거 예약 (완전히 제거)
+		// 타이머로 숨김 예약
 		GetWorld()->GetTimerManager().ClearTimer(HideTimer);
-		GetWorld()->GetTimerManager().SetTimer(HideTimer, [this]()
-		{
-			RemoveFromParent();
-			UE_LOG(LogTemp, Warning, TEXT("[KillConfirm] Removed"));
-		}, 1.0f, false);
-
-		UE_LOG(LogTemp, Warning, TEXT("[KillConfirm] Show: %s"), *Message);
+		GetWorld()->GetTimerManager().SetTimer(HideTimer, this, &UCS_WBP_KillConfirm::HideMessage, 2.0f, false);
+	}
+	
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[KillConfirm] KillConfirm text is nullptr!"));
 	}
 }
 

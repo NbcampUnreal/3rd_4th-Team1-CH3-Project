@@ -45,6 +45,13 @@ void UCS_WBP_HUD::NativeConstruct()
 	{
 		HitMarker->SetVisibility(ESlateVisibility::Hidden);
 	}
+
+	if (KillConfirm)
+	{
+		// KillConfirm은 Hidden 상태로 시작 (Collapsed X)
+		KillConfirm->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 }
 
 void UCS_WBP_HUD::ShowHitMarker()
@@ -123,11 +130,14 @@ void UCS_WBP_HUD::UpdateMissionStatus(const FString& StatusText)
 // 예: "Kill!!", "헤드샷!", "더블 킬!" 등의 문구를 전달받아 표시할 수 있습니다.
 void UCS_WBP_HUD::ShowKillConfirmMessage(const FString& Message)
 {
-	// KillConfirm 위젯이 유효한지 확인 (nullptr 체크)
 	if (KillConfirm)
 	{
-		// 메시지를 KillConfirm 위젯에 전달하여 화면에 출력
+		UE_LOG(LogTemp, Warning, TEXT("[HUD] KillConfirm valid"));
 		KillConfirm->ShowKillMessage(Message);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[HUD] KillConfirm is nullptr!"));
 	}
 }
 void UCS_WBP_HUD::AddKillLogEntry(const FString& Killer, const FString& Victim, UTexture2D* Icon)

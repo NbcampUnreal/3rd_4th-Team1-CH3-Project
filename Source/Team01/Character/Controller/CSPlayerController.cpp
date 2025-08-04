@@ -141,3 +141,13 @@ void ACSPlayerController::StartGame()
 
 	UGameplayStatics::OpenLevel(this, FName("MainLevel")); // ← 실제 맵 이름으로 교체
 }
+
+void ACSPlayerController::AddKillCount()
+{
+	++KillCount;
+	
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateKillCount(KillCount);
+	}
+}

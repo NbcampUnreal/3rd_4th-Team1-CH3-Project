@@ -50,4 +50,15 @@ public:
 	TObjectPtr<UUserWidget> MainMenuWidget;
 
 #pragma endregion MainMenu
+
+#pragma region KillCount
+
+private:
+	UPROPERTY()
+	int32 KillCount = 0;
+
+public:
+	void AddKillCount();
+
+#pragma endregion KillCount
 };
