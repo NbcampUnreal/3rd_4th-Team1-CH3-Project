@@ -31,10 +31,10 @@ protected:
 	UStaticMeshComponent* SpikeMesh;
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
-	FVector SpikeOffset = FVector(0.f, 0.f, 80.f);
+	FVector SpikeOffset = FVector(0.f, 0.f, 200.f);
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
-	float MoveSpeed = 200.f;
+	float MoveSpeed = 300.f;
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Damage")
 	float DamageAmount = 30.f;
@@ -53,8 +53,10 @@ protected:
 	UFUNCTION()
 	void OnTriggerEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
+	
+	UFUNCTION()
 	void MoveSpike();
+
 	void ApplyDamage();
 
 };

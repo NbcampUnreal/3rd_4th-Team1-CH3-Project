@@ -38,18 +38,39 @@ void ASpikeTrap::OnTriggerBegin(UPrimitiveComponent* OverlappedComponent, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Tirgger: %s"), *OtherActor->GetName());
-	UE_LOG(LogTemp, Warning, TEXT("Start: %s"), *StartLocation.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Target: %s"), *TargetLocation.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Current: %s"), *SpikeMesh->GetRelativeLocation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Trigger Begin Overlap"));
+
+	if (!OtherActor)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OtherActor is nullptr!"));
+		return;
+	}
+
+	if (!OtherActor->ActorHasTag("Player"))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor has no Player tag"));
+		return;
+	}
+
 	if (!OtherActor->ActorHasTag("Player"))
 	{
 
 		return;
 	}
 	bMovingUp = true;
+	// 타이머 등록 시도 로그
+	UE_LOG(LogTemp, Warning, TEXT("Trying to register timer..."));
+
 	GetWorld()->GetTimerManager().SetTimer(SpikeMoveTimer, this, &ASpikeTrap::MoveSpike, 0.01f, true);
 
+	if (GetWorld()->GetTimerManager().IsTimerActive(SpikeMoveTimer))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("active"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("inactive"));
+	}
 }
 
 void ASpikeTrap::OnTriggerEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -73,7 +94,9 @@ void ASpikeTrap::MoveSpike()
 	FVector NewLoc = FMath::VInterpConstantTo(Current, Target, GetWorld()->GetDeltaSeconds(), MoveSpeed);
 	SpikeMesh->SetRelativeLocation(NewLoc);
 
-	if (FVector::Dist(NewLoc, Target) < 1.f)
+	UE_LOG(LogTemp, Warning, TEXT("NewLoc: %s"), *NewLoc.ToString());
+
+	if (FVector::Dist(NewLoc, Target) < 0.5f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(SpikeMoveTimer);
 		if (bMovingUp)
