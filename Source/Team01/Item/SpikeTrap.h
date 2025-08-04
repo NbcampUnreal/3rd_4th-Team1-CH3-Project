@@ -34,7 +34,7 @@ protected:
 	FVector SpikeOffset = FVector(0.f, 0.f, 200.f);
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
-	float MoveSpeed = 300.f;
+	float MoveSpeed = 800.f;
 
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Damage")
 	float DamageAmount = 30.f;
