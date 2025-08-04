@@ -54,15 +54,6 @@ protected:
 	TObjectPtr<UCS_WBP_EnemyHPBar> HPBar;
 private:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	UAnimMontage* AttackMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dead")
-	UAnimMontage* DeadMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Hit")
-	UAnimMontage* HitMontage;
-
 	UFUNCTION()
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser);

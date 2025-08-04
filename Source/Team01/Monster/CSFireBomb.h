@@ -36,6 +36,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	USoundBase* ExplosionSound;
 
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float AttackDamage;
+
+	UPROPERTY()
+	AController* InstigatorController;
+
+	UPROPERTY()
+	APawn* PlayerPawn;
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

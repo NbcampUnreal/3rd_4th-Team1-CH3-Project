@@ -21,7 +21,6 @@ ACSMonster::ACSMonster()
 
 	MaxHP = 40.0f;
 	CurrentHP = MaxHP;
-	AttackDamage = 10.0f;
 
 	SightRange = 2000.0f;
 	AttackRange = 550.0f;
@@ -82,11 +81,6 @@ void ACSMonster::BeginAttack()
 	}
 
 	ThrowActor();
-
-	if (PlayerPawn)
-	{
-		UGameplayStatics::ApplyDamage(PlayerPawn, AttackDamage, GetController(), this, nullptr);
-	}
 }
 
 void ACSMonster::EndAttack(UAnimMontage* InMontage, bool bInterruped)

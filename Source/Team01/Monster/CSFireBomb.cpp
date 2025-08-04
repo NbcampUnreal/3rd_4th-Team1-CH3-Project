@@ -1,6 +1,7 @@
 #include "CSFireBomb.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/DamageType.h"
 
 
 ACSFireBomb::ACSFireBomb()
@@ -18,6 +19,8 @@ ACSFireBomb::ACSFireBomb()
 	ProjectileComp->MaxSpeed = 2000.f;
 	ProjectileComp->bRotationFollowsVelocity = true;
 	ProjectileComp->ProjectileGravityScale = 1.f;
+
+	AttackDamage = 10.0f;
 }
 
 void ACSFireBomb::BeginPlay()
@@ -25,7 +28,8 @@ void ACSFireBomb::BeginPlay()
 	Super::BeginPlay();
 
 	StaticMesh->OnComponentHit.AddDynamic(this, &ACSFireBomb::OnHit);
-	
+
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);	
 }
 
 void ACSFireBomb::Tick(float DeltaTime)
@@ -46,8 +50,16 @@ void ACSFireBomb::LaunchProjectile(const FVector& Direction, float Speed)
 void ACSFireBomb::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-
-
+	if (OtherActor && OtherActor == PlayerPawn)
+	{
+		UGameplayStatics::ApplyDamage(
+			OtherActor,
+			AttackDamage,
+			InstigatorController,
+			this,
+			UDamageType::StaticClass()
+		);
+	}
 
 	if (ExplosionEffect)
 	{
