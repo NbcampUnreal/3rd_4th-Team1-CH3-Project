@@ -21,7 +21,7 @@ ACSHiddenMonster::ACSHiddenMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = ACSHiddenMonsterAIController::StaticClass();
 
-	MaxHP = 40.0f;
+	MaxHP = 20.0f;
 	CurrentHP = MaxHP;
 
 	AttackRange = 200.0f;
@@ -29,6 +29,7 @@ ACSHiddenMonster::ACSHiddenMonster()
 
 	bIsAttack = false;
 	bIsDead = false;
+	bIsDetected = false;
 }
 
 void ACSHiddenMonster::BeginPlay()
@@ -44,6 +45,8 @@ void ACSHiddenMonster::BeginPlay()
 
 void ACSHiddenMonster::BeginAttack()
 {
+	bIsAttack = true;
+
 	if (PlayerPawn)
 	{
 		FRotator LookAtRotation = (PlayerPawn->GetActorLocation() - GetActorLocation()).Rotation();
@@ -66,7 +69,7 @@ void ACSHiddenMonster::BeginAttack()
 	}
 }
 
-void ACSHiddenMonster::EndAttack()
+void ACSHiddenMonster::AttackEnd()
 {
 	bIsAttack = false;
 }
@@ -85,6 +88,8 @@ void ACSHiddenMonster::OnConeOverlap(UPrimitiveComponent* OverlappedComp, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
+	bIsDetected = true;
+
 	if (OtherActor && OtherActor != this)
 	{
 		APawn* Player = Cast<APawn>(OtherActor);
@@ -96,6 +101,25 @@ void ACSHiddenMonster::OnConeOverlap(UPrimitiveComponent* OverlappedComp, AActor
 		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
 		{
 			BB->SetValueAsObject(TEXT("TargetActor"), Player);
+		}
+	}
+}
+
+void ACSHiddenMonster::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
+{
+
+	if (!OtherActor || OtherActor == this) return;
+
+	APawn* Player = Cast<APawn>(OtherActor);
+	if (!Player) return;
+
+	if (AAIController* AICon = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		{
+			BB->ClearValue(TEXT("TargetActor"));
 		}
 	}
 }

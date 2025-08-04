@@ -7,7 +7,7 @@
 UCSHiddenMonsterBTService::UCSHiddenMonsterBTService()
 {
     NodeName = TEXT("Check Attack Condition");
-    Interval = 0.3f;
+    Interval = 0.1f;
 }
 
 void UCSHiddenMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -32,13 +32,6 @@ void UCSHiddenMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint
     float Distance = FVector::Dist(Pawn->GetActorLocation(), TargetActor->GetActorLocation());
 
     bool bCanAttack = Distance <= Monster->AttackRange;
+    BB->SetValueAsBool(TEXT("bCanAttack"), bCanAttack);
 
-    if (bCanAttack)
-    {
-        Monster->bIsAttack = true;
-    }
-    else
-    {
-        Monster->bIsAttack = false;
-    }
 }

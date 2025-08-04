@@ -15,5 +15,6 @@ void UCSHiddenMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     {
         bIsAttack = Monster->bIsAttack;
         bIsDead = Monster->bIsDead;
+        bIsDetected = Monster->bIsDetected;
     }
 }

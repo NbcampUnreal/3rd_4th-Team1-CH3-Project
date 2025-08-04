@@ -19,7 +19,7 @@ EBTNodeResult::Type UCSHiddenMonsterBTTaskNode::ExecuteTask(UBehaviorTreeCompone
 
 	AIController->StopMovement();
 
-	Monster->bIsAttack = true;
+	Monster->BeginAttack();
 
 	return EBTNodeResult::Succeeded;
 }

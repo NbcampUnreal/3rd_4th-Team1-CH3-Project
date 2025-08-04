@@ -20,6 +20,9 @@ public:
 	bool bIsAttack;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly)
+	bool bIsDetected;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly)
 	bool bIsDead;
 
 

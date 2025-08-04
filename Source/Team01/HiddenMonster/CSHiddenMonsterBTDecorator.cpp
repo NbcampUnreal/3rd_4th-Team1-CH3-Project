@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "CSHiddenMonster.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UCSHiddenMonsterBTDecorator::UCSHiddenMonsterBTDecorator()
 {
@@ -18,13 +19,19 @@ bool UCSHiddenMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeCompon
 	ACSHiddenMonster* Monster = Cast<ACSHiddenMonster>(ControlledPawn);
 	if (!Monster) return false;
 
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return false;
+
 	switch (ConditionType)
 	{
 	case EHiddenMonsterAIConditionType::IsDead:
 		return Monster->bIsDead;
 
 	case EHiddenMonsterAIConditionType::IsAttacking:
-		return Monster->bIsAttack;
+	{
+		bool bCanAttack = BB->GetValueAsBool(TEXT("bCanAttack"));
+		return bCanAttack && !Monster->bIsAttack;
+	}
 
 	default:
 		return false;
