@@ -43,6 +43,9 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 	GetCharacterMovement()->SetCrouchedHalfHeight(55.f);
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 150.f;
 
+	// FIKGoalData 의 Alpha 기본값, 1.f == IK Goal 적용강도 100%
+	LeftHandIKGoal.Alpha = 1.f;
+
 #pragma endregion
 
 #pragma region Character Vision
@@ -662,12 +665,12 @@ void ACSPlayerCharacter::IsDying()
 
 FTransform ACSPlayerCharacter::CalculateLeftHandIKGoalTransform()
 {
-	FTransform HandLTransform = GetMesh()->GetSocketTransform(TEXT("hand_l"));
+	FTransform HandLWorldTransform = GetMesh()->GetSocketTransform(TEXT("hand_l"));
 
-	FTransform WeaponLRelativeTransform =
-		FTransform(FRotator(0, 90, 0), FVector(20, 0, 0)); // 손에 총이 잡히는 상대 위치/회전
+	FTransform WeaponLRelativeToHandTransform =
+		FTransform(FRotator(18.1, 80.3, 164.7), FVector(10.4, -1.7, 0.3)); // 손에 총이 잡히는 상대 위치/회전
 
-	return WeaponLRelativeTransform * HandLTransform; // hand_l 기준으로 weapon_l의 목표 위치 계산
+	return WeaponLRelativeToHandTransform * HandLWorldTransform; // hand_l 기준으로 weapon_l의 목표 위치 계산
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()
