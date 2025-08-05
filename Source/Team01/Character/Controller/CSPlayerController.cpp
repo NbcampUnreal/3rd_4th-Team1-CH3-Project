@@ -199,6 +199,11 @@ void ACSPlayerController::AddKillCount()
 		bPortalSpawned = true;
 
 		UE_LOG(LogTemp, Warning, TEXT("Portal creation!"));
+
+		if (SpawnSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, PortalSpawnLocation);
+		}
 	}
 
 }

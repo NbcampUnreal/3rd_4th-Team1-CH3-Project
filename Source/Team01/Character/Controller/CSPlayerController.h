@@ -63,6 +63,9 @@ public:
 
 	bool bPortalSpawned = false;
 
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* SpawnSound;
+
 #pragma endregion MainMenu
 
 #pragma region KillCount
