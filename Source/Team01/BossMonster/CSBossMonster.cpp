@@ -18,6 +18,8 @@ ACSBossMonster::ACSBossMonster()
 	MaxHP = 200.0f;
 	CurrentHP = MaxHP;
 	AttackDamage = 20.0f;
+	bIsInPhase2 = false;
+	bIsPhaseTransitionPending = false;
 
 	AIControllerClass = ACSBossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -39,6 +41,36 @@ void ACSBossMonster::BeginPlay()
 	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
 	{
 		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+	}
+}
+
+void ACSBossMonster::BeginAttack()
+{
+	Super::BeginAttack();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	// AttackMontage가 있고, 이미 재생 중이 아닐 때
+	if (AnimInstance && AttackMontage && !AnimInstance->Montage_IsPlaying(AttackMontage))
+	{
+		SetCurrentState(ECharacterState::Attacking);
+		AnimInstance->Montage_Play(AttackMontage);
+
+		// 몽타주가 끝나면 EndAttack 함수를 호출하도록 델리게이트를 바인딩합니다.
+		FOnMontageEnded MontageEndedDelegate;
+		MontageEndedDelegate.BindUObject(this, &ACSBossMonster::EndAttack);
+		AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AttackMontage);
+	}
+}
+
+void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
+{
+	Super::EndAttack(InMontage, bInterrupted);
+
+	// 공격이 중단되지 않고 정상적으로 끝났을 때
+	if (!bInterrupted)
+	{
+		SetCurrentState(ECharacterState::Idle); // 상태를 Idle로 변경
+		TryStateTransition(); // 여기서 2페이즈 전환 요청이 있었는지 체크
 	}
 }
 
@@ -138,7 +170,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 		
 		if (!bIsInPhase2 && (CurrentHP / MaxHP <= 0.5f))
 		{
-			EnterPhase2(); // 2페이즈 진입
+			bIsPhaseTransitionPending = true; // 2페이즈 진입 플래그
 		}
 
 		if (CurrentHP <= 0.f)
@@ -168,21 +200,23 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 					// 몽타주가 끝나면 다시 Idle 상태로 돌아오도록 설정합니다.
 					FOnMontageEnded MontageEndedDelegate;
 					MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted) {
-						SetCurrentState(ECharacterState::Idle);
+						if (!bInterrupted)
+						{
+							SetCurrentState(ECharacterState::Idle);
+						}
 						});
 					AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, HitReactMontage);
 				}
 			}
 		}
 	}
-
+	TryStateTransition();
 	return FinalDamage;
 }
 
 void ACSBossMonster::EnterPhase2()
 {
 	if (bIsInPhase2) return; // 이미 2페이즈라면 중복 실행 방지
-
 	bIsInPhase2 = true;
 	SetCurrentState(ECharacterState::PhaseTransition);
 	UE_LOG(LogTemp, Error, TEXT("Boss is entering PHASE 2!"));
@@ -195,7 +229,10 @@ void ACSBossMonster::EnterPhase2()
 
 		FOnMontageEnded MontageEndedDelegate;
 		MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted) {
-			SetCurrentState(ECharacterState::Idle);
+			if (!bInterrupted)
+			{
+				SetCurrentState(ECharacterState::Idle);
+			}
 			});
 		AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, Phase2TransitionMontage);
 	}
@@ -214,6 +251,17 @@ void ACSBossMonster::EnterPhase2()
 		);
 	}
 }
+
+void ACSBossMonster::TryStateTransition() // 하고 있던 일이 끝나는 시점과 데미지를 입은 직후에 상태전환을 체크할 함수
+{
+	// 2페이즈 전환이 요청되었고, 현재 캐릭터가 다른 중요 행동(공격 등)을 하고 있지 않을 때
+	if (bIsPhaseTransitionPending && GetCurrentState() != ECharacterState::Attacking && GetCurrentState() != ECharacterState::Shouting)
+	{
+		bIsPhaseTransitionPending = false;
+		EnterPhase2();
+	}
+}
+
 
 //사망 처리 함수
 void ACSBossMonster::Die()

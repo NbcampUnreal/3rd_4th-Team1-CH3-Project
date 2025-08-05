@@ -25,16 +25,7 @@ EBTNodeResult::Type UCSBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Ow
         return EBTNodeResult::Failed;
     }
 
-    // 보스의 애니메이션 인스턴스를 가져와서 'AttackMontage'를 재생시킵니다.
-    UAnimInstance* AnimInstance = BossMonster->GetMesh()->GetAnimInstance();
-    if (AnimInstance)
-    {
-        // 몽타주가 이미 재생 중이 아니라면 재생시킵니다.
-        if (!AnimInstance->Montage_IsPlaying(BossMonster->AttackMontage))
-        {
-            AnimInstance->Montage_Play(BossMonster->AttackMontage);
-        }
-    }
+    BossMonster->BeginAttack();
 
     // 태스크는 "재생하라는 명령을 내렸다"는 임무를 완수했으므로 '성공'을 반환합니다.
     return EBTNodeResult::Succeeded;

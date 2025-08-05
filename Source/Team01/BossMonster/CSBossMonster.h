@@ -20,6 +20,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> HitReactMontage; //맞았을 때 히트 애니메이션 몽타주
 
+    virtual void BeginAttack() override;
+
+    virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted) override;
+
     void AttackHitCheck(); 
 
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
@@ -32,6 +36,8 @@ public:
 
     void EnterPhase2(); //페이즈 2 진입 함수
 
+    void TryStateTransition(); // 상태 전환을 시도하는 함수 선언
+
     bool GetIsInPhase2() const { return bIsInPhase2; } //Phase 2 Bool값을 전해주는 Get함수
 
     UPROPERTY(EditInstanceOnly, Category = "AI")
@@ -41,15 +47,15 @@ protected:
 
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State") // 페이즈 2 여부를 저장하는 Bool 변수
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State") // 2 페이즈 여부를 저장하는 Bool 변수
     bool bIsInPhase2;
 
-    bool bIsPhaseTransitionPending;
+    bool bIsPhaseTransitionPending; // 2페이즈
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation") // 페이즈 2 진입 애니메이션
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation") // 2 페이즈 진입 애니메이션
     TObjectPtr<UAnimMontage> Phase2TransitionMontage;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VFX") // 페이즈 2 진입 파티클
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VFX") // 2 페이즈 진입 파티클
     TObjectPtr<UParticleSystem> Phase2TransitionVFX;
 
     FTimerHandle DeathTimerHandle;
