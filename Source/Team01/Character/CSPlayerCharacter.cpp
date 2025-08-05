@@ -602,7 +602,8 @@ void ACSPlayerCharacter::BeginAttack()
 	// 변경: 상태를 'Attacking'으로 설정합니다.
 	SetCurrentState(ECharacterState::Attacking);
 	if (IsValid(AnimInstance) && IsValid(ShootMontage)
-		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
+		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false
+		&& bIsCrouching == false)
 	{
 		AnimInstance->Montage_Play(ShootMontage);
 	}
