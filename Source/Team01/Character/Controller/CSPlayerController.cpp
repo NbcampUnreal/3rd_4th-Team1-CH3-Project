@@ -191,4 +191,14 @@ void ACSPlayerController::AddKillCount()
 	{
 		HUDWidget->UpdateKillCount(KillCount);
 	}
+
+	// 포탈 생성 조건 검사
+	if (!bPortalSpawned && KillCount >= 2 && PortalToSpawn)
+	{
+		GetWorld()->SpawnActor<AActor>(PortalToSpawn, PortalSpawnLocation, FRotator::ZeroRotator);
+		bPortalSpawned = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("Portal creation!"));
+	}
+
 }

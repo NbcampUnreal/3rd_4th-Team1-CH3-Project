@@ -33,6 +33,8 @@ protected:
 	UBoxComponent* InteractionZone;
 
 
+
+
 public:	
 
 	virtual void ActivateItem_Implementation(AActor* Activator) override;

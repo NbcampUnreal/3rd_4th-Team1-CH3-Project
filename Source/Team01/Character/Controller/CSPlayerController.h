@@ -54,6 +54,15 @@ public:
 	UFUNCTION()
 	void ToggleGameOverTitleVisibility();
 
+	// 포탈 생성 관련
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	TSubclassOf<AActor> PortalToSpawn;
+
+	UPROPERTY(EditAnywhere, Category = "Portal")
+	FVector PortalSpawnLocation;
+
+	bool bPortalSpawned = false;
+
 #pragma endregion MainMenu
 
 #pragma region KillCount

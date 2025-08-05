@@ -43,8 +43,6 @@ void APortalActor::ActivateItem_Implementation(AActor* Activator)
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("MOVE!!"));
-	Activator->SetActorLocation(TargetLocation);
 
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (!PC)
