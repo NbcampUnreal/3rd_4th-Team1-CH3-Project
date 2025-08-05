@@ -91,7 +91,7 @@ void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 	}
 }
 
-void ACSBossMonster::AttackHitCheck()
+void ACSBossMonster::ApplyMeleeDamage()
 {
 	TArray<FHitResult> OutHitResults;
 	FVector Start = GetActorLocation();
