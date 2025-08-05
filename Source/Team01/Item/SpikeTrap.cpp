@@ -82,6 +82,10 @@ void ASpikeTrap::MoveSpike()
 		GetWorld()->GetTimerManager().ClearTimer(SpikeMoveTimer);
 		if (bMovingUp)
 		{
+			if (SpikeRiseSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, SpikeRiseSound, GetActorLocation());
+			}
 			ApplyDamage();
 		}
 	}

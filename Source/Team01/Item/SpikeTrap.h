@@ -33,6 +33,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* SpikeMesh;
 
+	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Sound")
+	USoundBase* SpikeRiseSound;
+
 	UPROPERTY(EditAnywhere, Category = "SpikeTrap|Movement")
 	FVector SpikeOffset = FVector(0.f, 0.f, 300.f);
 
