@@ -98,19 +98,23 @@ void ACSHiddenMonster::OnConeOverlap(UPrimitiveComponent* OverlappedComp, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	bIsDetected = true;
-
 	if (OtherActor && OtherActor != this)
 	{
 		APawn* Player = Cast<APawn>(OtherActor);
-		if (!Player) return;
 
-		AAIController* AICon = Cast<AAIController>(GetController());
-		if (!AICon) return;
-
-		if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+		if (!Player || !Player->IsPlayerControlled())
 		{
-			BB->SetValueAsObject(TEXT("TargetActor"), Player);
+			return;
+		}
+
+		bIsDetected = true;
+
+		if (AAIController* AICon = Cast<AAIController>(GetController()))
+		{
+			if (UBlackboardComponent* BB = AICon->GetBlackboardComponent())
+			{
+				BB->SetValueAsObject(TEXT("TargetActor"), Player);
+			}
 		}
 	}
 }

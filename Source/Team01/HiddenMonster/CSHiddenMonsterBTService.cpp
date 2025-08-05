@@ -3,6 +3,7 @@
 #include "AIController.h"
 #include "CSHiddenMonster.h"
 #include "GameFramework/Pawn.h"
+#include "CSPlayerCharacter.h"
 
 UCSHiddenMonsterBTService::UCSHiddenMonsterBTService()
 {
@@ -25,6 +26,13 @@ void UCSHiddenMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 
     AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
     if (!TargetActor) return;
+
+    if (!TargetActor->IsA(ACSPlayerCharacter::StaticClass()))
+    {
+        BB->ClearValue(TEXT("TargetActor"));
+        BB->SetValueAsBool(TEXT("bCanAttack"), false);
+        return;
+    }
 
     ACSHiddenMonster* Monster = Cast<ACSHiddenMonster>(Pawn);
     if (!Monster) return;
