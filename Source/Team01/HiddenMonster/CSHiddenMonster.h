@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "CSCharacterBase.h"
+#include "../Ui/CS_WBP_EnemyHPBar.h"
+#include "Components/WidgetComponent.h"
 #include "CSHiddenMonster.generated.h"
 
 class UPawnSensingComponent;
@@ -61,4 +63,16 @@ public:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex
 	);
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	TObjectPtr<UWidgetComponent> HPBarComponent;
+
+	UPROPERTY()
+	TObjectPtr<UCS_WBP_EnemyHPBar> HPBar;
+
+	UPROPERTY()
+	AController* LastInstigator = nullptr;
+	
+	FTimerHandle HPHideTimerHandle;
 };

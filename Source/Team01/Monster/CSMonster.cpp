@@ -44,13 +44,13 @@ void ACSMonster::BeginPlay()
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
-    	{
-    		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
-    		if (HPBar)
-    		{
-    			HPBar->UpdateHP(CurrentHP / MaxHP);
-    		}
-    	}
+	{
+		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+		if (HPBar)
+		{
+			HPBar->UpdateHP(CurrentHP / MaxHP);
+		}
+	}
 }
 
 void ACSMonster::Tick(float DeltaTime)
@@ -127,8 +127,6 @@ void ACSMonster::Die()
 			}
 		}
 	}
-	
-	SetLifeSpan(5.0f);
 	
 	SetLifeSpan(5.0f);
 }

@@ -1,4 +1,7 @@
 #include "CSHiddenMonster.h"
+#include "../UI/CS_WBP_EnemyHPBar.h"
+#include "../Ui/CS_WBP_HUD.h"
+#include "../Character/Controller/CSPlayerController.h"
 #include "Perception/PawnSensingComponent.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,6 +33,13 @@ ACSHiddenMonster::ACSHiddenMonster()
 	bIsAttack = false;
 	bIsDead = false;
 	bIsDetected = false;
+
+	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
+	HPBarComponent->SetupAttachment(RootComponent);
+	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
+	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	HPBarComponent->SetVisibility(false);
 }
 
 void ACSHiddenMonster::BeginPlay()
@@ -41,6 +51,15 @@ void ACSHiddenMonster::BeginPlay()
 	SightCone->OnComponentBeginOverlap.AddDynamic(this, &ACSHiddenMonster::OnConeOverlap);
 
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
+	{
+		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+		if (HPBar)
+		{
+			HPBar->UpdateHP(CurrentHP / MaxHP);
+		}
+	}
 }
 
 void ACSHiddenMonster::BeginAttack()
@@ -85,7 +104,20 @@ void ACSHiddenMonster::Die()
 			BTComp->StopTree(EBTStopMode::Safe);
 		}
 	}
-
+	
+	if (LastInstigator)
+	{
+		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(LastInstigator))
+		{
+			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
+			{
+				PlayerController->AddKillCount();
+				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
+				HUD->ShowKillConfirmMessage(TEXT("Kill!!"));
+			}
+		}
+	}
+	
 	SetLifeSpan(5.0f);
 }
 
@@ -143,6 +175,27 @@ void ACSHiddenMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UD
 {
 	CurrentHP -= Damage;
 
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(true);
+		
+		GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+		{
+			if (HPBarComponent)
+			{
+				HPBarComponent->SetVisibility(false);
+			}
+		}, 3.0f, false);
+	}
+	
+	if (HPBar)
+	{
+		HPBar->UpdateHP(CurrentHP / MaxHP);
+	}
+	
+	LastInstigator = InstigatedBy;
+	
 	if (CurrentHP <= 0)
 	{
 		bIsDead = true;
