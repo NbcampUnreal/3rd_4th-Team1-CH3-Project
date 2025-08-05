@@ -49,6 +49,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Menu")
 	TObjectPtr<UUserWidget> MainMenuWidget;
 
+	FTimerHandle GameOverTitleBlinkTimer;
+
+	UFUNCTION()
+	void ToggleGameOverTitleVisibility();
+
 #pragma endregion MainMenu
 
 #pragma region KillCount

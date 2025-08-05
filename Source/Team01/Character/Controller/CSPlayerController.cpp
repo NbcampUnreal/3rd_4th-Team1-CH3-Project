@@ -121,6 +121,46 @@ void ACSPlayerController::ShowMainMenu(bool bIsRestart)
 			{
 				ButtonText->SetText(FText::FromString(bIsRestart ? TEXT("Restart") : TEXT("Start")));
 			}
+
+			if (UTextBlock* ButtonText = Cast<UTextBlock>(MainMenuWidget->GetWidgetFromName(TEXT("StartTEXT"))))
+			{
+				ButtonText->SetText(FText::FromString(bIsRestart ? TEXT("Restart") : TEXT("Start")));
+			}
+
+			if (UTextBlock* TitleText = Cast<UTextBlock>(MainMenuWidget->GetWidgetFromName(TEXT("Title"))))
+			{
+				TitleText->SetText(FText::FromString(bIsRestart ? TEXT("Game Over!!") : TEXT("Constantine")));
+				TitleText->SetVisibility(ESlateVisibility::Visible);
+
+				if (bIsRestart)
+				{
+					GetWorldTimerManager().SetTimer(
+						GameOverTitleBlinkTimer,
+						this,
+						&ACSPlayerController::ToggleGameOverTitleVisibility,
+						0.5f,
+						true		
+					);
+				}
+				else
+				{
+					GetWorldTimerManager().ClearTimer(GameOverTitleBlinkTimer);
+				}
+			}
+		}
+	}
+}
+
+void ACSPlayerController::ToggleGameOverTitleVisibility()
+{
+	if (MainMenuWidget)
+	{
+		if (UTextBlock* TitleText = Cast<UTextBlock>(MainMenuWidget->GetWidgetFromName(TEXT("Title"))))
+		{
+			ESlateVisibility CurrentVisibility = TitleText->GetVisibility();
+			TitleText->SetVisibility(CurrentVisibility == ESlateVisibility::Visible
+				? ESlateVisibility::Hidden
+				: ESlateVisibility::Visible);
 		}
 	}
 }
