@@ -7,6 +7,7 @@
 
 class UStaticMeshComponent;
 class UNiagaraComponent;
+class UBoxComponent;
 
 UCLASS()
 class TEAM01_API APortalActor : public AActor, public IItemInterface
@@ -27,6 +28,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Portal")
 	FVector TargetLocation;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* InteractionZone;
+
 
 public:	
 

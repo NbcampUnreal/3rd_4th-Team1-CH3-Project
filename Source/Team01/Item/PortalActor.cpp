@@ -2,7 +2,10 @@
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/Character.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 
 
 APortalActor::APortalActor()
@@ -19,6 +22,13 @@ APortalActor::APortalActor()
 	PortalEffect->SetupAttachment(Root);
 
 	TargetLocation = FVector::ZeroVector;
+
+	InteractionZone = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractionZone"));
+	InteractionZone->SetupAttachment(RootComponent);
+	InteractionZone->SetBoxExtent(FVector(100.f, 100.f, 100.f));
+	InteractionZone->SetCollisionProfileName(TEXT("Trigger"));
+	InteractionZone->SetGenerateOverlapEvents(true);
+
 }
 
 void APortalActor::BeginPlay()
@@ -35,4 +45,20 @@ void APortalActor::ActivateItem_Implementation(AActor* Activator)
 	}
 	UE_LOG(LogTemp, Warning, TEXT("MOVE!!"));
 	Activator->SetActorLocation(TargetLocation);
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PC)
+	{
+		return;
+	}
+
+	PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.01f, FLinearColor::Black, true, true);
+
+	FTimerHandle FadeTimer;
+
+	GetWorld()->GetTimerManager().SetTimer(FadeTimer, [this, Activator, PC]()
+		{
+			Activator->SetActorLocation(TargetLocation);
+			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.0f, FLinearColor::Black, false, true);
+		}, 1.0f, false);
 }
