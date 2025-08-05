@@ -132,5 +132,14 @@ bool ACSCharacterBase::GetIsDead() const
 
 void ACSCharacterBase::HandleOnPostDead()
 {
+	if (IsPlayerControlled())
+	{
+		if (ACSPlayerController* CSController = Cast<ACSPlayerController>(GetController()))
+		{
+			CSController->ShowMainMenu(true); // Restart 버튼이 있는 UI 표시
+			UE_LOG(LogTemp, Warning, TEXT("플레이어가 사망하여 Restart 메뉴 표시"));
+		}
+	}
+	
 	SetLifeSpan(0.1f);
 }

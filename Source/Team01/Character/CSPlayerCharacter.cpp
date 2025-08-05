@@ -634,12 +634,23 @@ void ACSPlayerCharacter::OnHittedRagdollRestoreTimerElapsed()
 
 void ACSPlayerCharacter::IsDying()
 {
-	UCSPlayerAnimInstance* AnimInstance =
-		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+	if (!IsValid(GetMesh()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[IsDying] SkeletalMeshComponent가 유효하지 않습니다"));
+		return;
+	}
 
-	if (IsValid(AnimInstance) && IsValid(DeathMontage)
-		&& AnimInstance->Montage_IsPlaying(DeathMontage) == false
+	UAnimInstance* RawInstance = GetMesh()->GetAnimInstance();
+	UCSPlayerAnimInstance* AnimInstance = Cast<UCSPlayerAnimInstance>(RawInstance);
+
+	if (!IsValid(AnimInstance))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[IsDying] AnimInstance가 NULL입니다: %s"), *GetName());
+		return;
+	}
+
+	if (IsValid(DeathMontage)
+		&& !AnimInstance->Montage_IsPlaying(DeathMontage)
 		&& CurrentState == ECharacterState::Dead)
 	{
 		AnimInstance->OnPostDead.RemoveAll(this);
