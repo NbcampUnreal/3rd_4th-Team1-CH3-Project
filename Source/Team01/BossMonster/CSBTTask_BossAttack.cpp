@@ -20,12 +20,12 @@ EBTNodeResult::Type UCSBTTask_BossAttack::ExecuteTask(UBehaviorTreeComponent& Ow
     }
 
     ACSBossMonster* BossMonster = Cast<ACSBossMonster>(AIController->GetPawn());
-    if (BossMonster == nullptr || BossMonster->AttackMontage == nullptr)
+    if (BossMonster == nullptr)
     {
         return EBTNodeResult::Failed;
     }
 
-    BossMonster->BeginAttack();
+    BossMonster->BeginAttackPattern(AttackTypeToPerform);
 
     // 태스크는 "재생하라는 명령을 내렸다"는 임무를 완수했으므로 '성공'을 반환합니다.
     return EBTNodeResult::Succeeded;

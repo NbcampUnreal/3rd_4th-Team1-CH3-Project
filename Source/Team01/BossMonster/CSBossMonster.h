@@ -5,6 +5,12 @@
 #include "Components/WidgetComponent.h"
 #include "CSBossMonster.generated.h"
 
+UENUM(BlueprintType)
+enum class EBossAttackType : uint8
+{
+    Melee,      // 일반 근접 공격
+    GroundSlam  // 새로 추가할 점프 후 바닥 찍기 공격
+};
 
 UCLASS()
 class TEAM01_API ACSBossMonster : public ACSCharacterBase
@@ -15,16 +21,19 @@ public:
     ACSBossMonster();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-    TObjectPtr<UAnimMontage> AttackMontage; // 공격 할 때 애니메이션 몽타주
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> HitReactMontage; //맞았을 때 히트 애니메이션 몽타주
 
-    virtual void BeginAttack() override;
+    void BeginAttackPattern(EBossAttackType AttackType);
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TMap<EBossAttackType, TObjectPtr<UAnimMontage>> AttackMontages;
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted) override;
 
-    void AttackHitCheck(); 
+    void AttackHitCheck(); // Melee 공격의 데미지를 실제로 적용하는 함수
+
+    UFUNCTION(BlueprintCallable, Category = "Attack")
+    void ApplyGroundSlamDamage();
 
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -46,6 +55,21 @@ public:
 protected:
 
     virtual void BeginPlay() override;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamDamage = 50.0f; // 공격력
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamRadius = 500.0f; // 공격 반경 (5미터)
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamForwardOffset = 150.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    TObjectPtr<UParticleSystem> GroundSlamVFX; // 바닥 찍을 때 터질 파티클 효과
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    TObjectPtr<USoundBase> GroundSlamSFX; // 바닥 찍을 때 재생될 사운드
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State") // 2 페이즈 여부를 저장하는 Bool 변수
     bool bIsInPhase2;
