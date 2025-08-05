@@ -20,6 +20,9 @@ UCSBTService_BossDetectPlayer::UCSBTService_BossDetectPlayer()
 	// 기본 공격 사정거리를 300cm (3m)로 설정, 에디터에서 수정 가능
 	AttackRange = 300.0f;
 
+    // 점프 공격 사정거리 1000cm
+    JumpAttackRange = 1000.0f;
+
 	// 플레이어를 인식하는 거리 2000cm (20m)
 	DetectRange = 2000.0f; 
 }
@@ -58,11 +61,13 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
         // [범위 안] 플레이어를 타겟으로 설정하고, 공격 범위 여부를 업데이트
         BlackboardComp->SetValueAsObject(TEXT("TargetPlayer"), TargetPlayer);
         BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), DistanceToPlayer <= AttackRange);
+        BlackboardComp->SetValueAsBool(TEXT("IsInJumpAttackRange"), DistanceToPlayer <= JumpAttackRange);
     }
     else
     {
         // [범위 밖] 플레이어를 잊어버리고(타겟을 비움), 공격 범위도 false로 설정
         BlackboardComp->ClearValue(TEXT("TargetPlayer"));
         BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), false);
+        BlackboardComp->SetValueAsBool(TEXT("IsInJumpAttackRange"), false);
     }
 }

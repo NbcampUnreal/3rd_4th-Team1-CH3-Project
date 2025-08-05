@@ -53,11 +53,6 @@ public:
     UPROPERTY(EditInstanceOnly, Category = "AI")
     TArray<TObjectPtr<AActor>> PatrolPoints; //패트롤 위치 타겟 포인트를 저장하는 Array
 
-protected:
-
-    virtual void BeginPlay() override;
-
-
 #pragma region Attack Attributes
     // ===== Ground Slam Attack 관련 속성 =====
 
@@ -71,12 +66,21 @@ protected:
     float GroundSlamForwardOffset = 150.0f; // 공격 판정 위치
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamJumpXYPower = 1000.0f; // GroundSlam 시 점프하는 힘 (수평 방향)
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamJumpZPower = 500.0f; // GroundSlam 시 점프하는 힘 (수직 방향, 높이)
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
     TObjectPtr<UParticleSystem> GroundSlamVFX; // 바닥 찍을 때 터질 파티클 효과
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
     TObjectPtr<USoundBase> GroundSlamSFX; // 바닥 찍을 때 재생될 사운드
 #pragma endregion
 
+protected:
+
+    virtual void BeginPlay() override;
 
 #pragma region Phase 2 Attributes
     // ===== 2 Phase 관련 속성 =====
