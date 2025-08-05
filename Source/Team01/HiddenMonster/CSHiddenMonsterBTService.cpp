@@ -33,5 +33,4 @@ void UCSHiddenMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 
     bool bCanAttack = Distance <= Monster->AttackRange;
     BB->SetValueAsBool(TEXT("bCanAttack"), bCanAttack);
-
 }

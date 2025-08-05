@@ -21,7 +21,7 @@ ACSHiddenMonster::ACSHiddenMonster()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = ACSHiddenMonsterAIController::StaticClass();
 
-	MaxHP = 20.0f;
+	MaxHP = 10.0f;
 	CurrentHP = MaxHP;
 
 	AttackRange = 200.0f;
@@ -76,6 +76,16 @@ void ACSHiddenMonster::AttackEnd()
 
 void ACSHiddenMonster::Die()
 {
+	if (AAIController* AICon = Cast<AAIController>(GetController()))
+	{
+		AICon->StopMovement();
+
+		if (UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(AICon->BrainComponent))
+		{
+			BTComp->StopTree(EBTStopMode::Safe);
+		}
+	}
+
 	SetLifeSpan(5.0f);
 }
 
