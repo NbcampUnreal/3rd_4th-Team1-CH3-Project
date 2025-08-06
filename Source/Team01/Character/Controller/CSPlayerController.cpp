@@ -1,6 +1,7 @@
 #include "CSPlayerController.h"
 #include "../Source/Team01/Ui/CS_WBP_HUD.h"
 #include "Blueprint/UserWidget.h"
+#include "../Game/CSGameStateBase.h"
 #include "CSPlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
@@ -60,7 +61,16 @@ void ACSPlayerController::CreateHUD()
 			HUDWidget->UpdateAmmoText(MyChar->GetBulletCount(), MyChar->GetMaxBulletCount());
 			MyChar->OnBulletChanged.AddDynamic(this, &ACSPlayerController::OnBulletChanged_Handler);
 		}
+		
+		if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
+		{
+			const EMissionState State = GS->GetCurrentMissionState();
+			const int32 CurrentKillCount = GS->GetTotalKillCount();
 
+			const FString MissionText = ACSGameStateBase::GetMissionText(State, CurrentKillCount);
+			HUDWidget->UpdateMissionStatus(MissionText);
+		}
+		
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
 	}
@@ -226,8 +236,13 @@ void ACSPlayerController::AddKillCount()
 		HUDWidget->UpdateKillCount(KillCount);
 	}
 
+	if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
+	{
+		GS->AddKill(); 
+	}
+	
 	// 포탈 생성 조건 검사
-	if (!bPortalSpawned && KillCount >= 2 && PortalToSpawn)
+	if (!bPortalSpawned && KillCount >= 9 && PortalToSpawn)
 	{
 		GetWorld()->SpawnActor<AActor>(PortalToSpawn, PortalSpawnLocation, FRotator::ZeroRotator);
 		bPortalSpawned = true;

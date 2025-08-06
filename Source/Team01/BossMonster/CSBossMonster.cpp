@@ -3,6 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "BrainComponent.h"
 #include "AIController.h"
+#include "../Game/CSGameStateBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Particles/ParticleSystem.h"
@@ -404,6 +405,11 @@ void ACSBossMonster::Die()
 				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
 				HUD->ShowKillConfirmMessage(TEXT("Boss Kill!!"));
 			}
+			
+			if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
+            {
+            	GS->SetMissionState(EMissionState::MissionClear);
+            }
 		}
 	}
 	
