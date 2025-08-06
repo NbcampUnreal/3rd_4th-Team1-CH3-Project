@@ -39,9 +39,14 @@ private:
 #pragma region MainMenu
 
 public:
+	UFUNCTION(BlueprintCallable)
 	void ShowMainMenu(bool bIsRestart);
+	
 	UFUNCTION(BlueprintCallable, Category="menu")
 	void StartGame();
+
+	UFUNCTION(BlueprintCallable)
+	void ShowOptionMenu();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Menu")
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
@@ -49,12 +54,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Menu")
 	TObjectPtr<UUserWidget> MainMenuWidget;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> OptionWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> OptionWidget;
+	
 	FTimerHandle GameOverTitleBlinkTimer;
 
 	UFUNCTION()
 	void ToggleGameOverTitleVisibility();
 
-	// Æ÷Å» »ý¼º °ü·Ã
+	// ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, Category = "Portal")
 	TSubclassOf<AActor> PortalToSpawn;
 
