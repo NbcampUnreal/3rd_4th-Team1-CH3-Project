@@ -45,8 +45,9 @@ void ACSBossMonster::BeginPlay()
 		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
 	}
 
-	EnableInput(GetWorld()->GetFirstPlayerController());
+	DefaultGravityScale = GetCharacterMovement()->GravityScale;
 
+	
 }
 
 void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
@@ -93,6 +94,8 @@ void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
 				/*this->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);*/
 
 				LaunchCharacter(LaunchVelocity, true, true);
+
+				GetCharacterMovement()->GravityScale = GroundSlamGravityScale;
 
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Temp 변수 내용: %s"), *Temp.ToString()));
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("LaunchVelocity: %s"), *LaunchVelocity.ToString()));
@@ -412,4 +415,11 @@ void ACSBossMonster::GoRagdoll()
 void ACSBossMonster::Disappear()
 {
 	Destroy();
+}
+
+void ACSBossMonster::OnLanded(const FHitResult& Hit)
+{
+	// 캐릭터가 땅에 착지하면, 중력 배율을 원래대로 되돌립니다.
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	UE_LOG(LogTemp, Warning, TEXT("Boss Landed! GravityScale Restored."));
 }

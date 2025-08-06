@@ -72,6 +72,9 @@ public:
     float GroundSlamJumpZPower = 500.0f; // GroundSlam 시 점프하는 힘 (수직 방향, 높이)
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
+    float GroundSlamGravityScale = 3.0f; // GroundSlam 시 적용될 중력 배율
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
     TObjectPtr<UParticleSystem> GroundSlamVFX; // 바닥 찍을 때 터질 파티클 효과
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
@@ -81,6 +84,10 @@ public:
 protected:
 
     virtual void BeginPlay() override;
+
+    virtual void OnLanded(const FHitResult& Hit);
+
+    float DefaultGravityScale;
 
 #pragma region Phase 2 Attributes
     // ===== 2 Phase 관련 속성 =====
