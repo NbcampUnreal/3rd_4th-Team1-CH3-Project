@@ -11,8 +11,4 @@ class TEAM01_API UCSMummyMonsterBTTaskNode : public UBTTaskNode
 
 public:
 	UCSMummyMonsterBTTaskNode();
-
-	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory);
-
-	
 };

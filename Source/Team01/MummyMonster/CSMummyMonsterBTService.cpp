@@ -7,10 +7,11 @@
 #include "Team01/Monster/CSMonsterTargetPoint.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Team01/Monster/CSMonsterTargetPoint.h"
 
 UCSMummyMonsterBTService::UCSMummyMonsterBTService()
 {
-	NodeName = TEXT("Check Player In Range");
+	NodeName = TEXT("Check PatrolTarget In Range");
 	Interval = 0.5f;
 }
 
@@ -24,73 +25,29 @@ void UCSMummyMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	ACSMummyMonster* Monster = Cast<ACSMummyMonster>(ControlledPawn);
 	if (!Monster) return;
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (!Player) return;
-
 	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 	if (!Blackboard) return;
 
-	const float Distance = FVector::Dist(ControlledPawn->GetActorLocation(), Player->GetActorLocation());
-
-	const bool bInAttackRange = Distance <= Monster->AttackRange;
-	Blackboard->SetValueAsBool(TEXT("IsinAttackRange"), bInAttackRange);
-
-	const bool bDetectedPlayer = Distance <= Monster->SightRange;
-	Blackboard->SetValueAsBool(TEXT("DetectedPlayer"), bDetectedPlayer);
 
 	const bool bIsDead = Monster->GetCurrentHP() <= 0;
 	Blackboard->SetValueAsBool(TEXT("IsDead"), bIsDead);
 
-	if (bInAttackRange)
+	AActor* CurrentPatrolTarget = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("PatrolTarget")));
+
+	bool bNeedNewTarget = !CurrentPatrolTarget;
+	if (CurrentPatrolTarget)
 	{
-		Monster->bIsAttack = true;
+		const float DistanceToPatrol = FVector::Dist(ControlledPawn->GetActorLocation(), CurrentPatrolTarget->GetActorLocation());
+		bNeedNewTarget |= (DistanceToPatrol < 100.0f);
 	}
-	else
+
+	if (bNeedNewTarget)
 	{
-		Monster->bIsAttack = false;
-	}
-
-	if (bDetectedPlayer)
-	{
-		Blackboard->SetValueAsObject(TEXT("TargetActor"), Player);
-		Blackboard->ClearValue(TEXT("PatrolTarget"));
-
-		Monster->bIsDetectedPlayer = true;
-	}
-	else
-	{
-		Monster->bIsDetectedPlayer = false;
-
-		Blackboard->ClearValue(TEXT("TargetActor"));
-
-		AActor* CurrentPatrolTarget = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("PatrolTarget")));
-
-		bool bNeedNewTarget = !CurrentPatrolTarget;
-		if (CurrentPatrolTarget)
+		ACSMummyMonster* MonsterTarget = Cast<ACSMummyMonster>(ControlledPawn);
+		if (MonsterTarget && MonsterTarget->PatrolPoints.Num() > 0)
 		{
-			const float DistanceToPatrol = FVector::Dist(ControlledPawn->GetActorLocation(), CurrentPatrolTarget->GetActorLocation());
-			bNeedNewTarget |= (DistanceToPatrol < 100.0f);
+			AActor* NewTarget = Monster->PatrolPoints[FMath::RandRange(0, Monster->PatrolPoints.Num() - 1)];
+			Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 		}
-
-		if (bNeedNewTarget)
-		{
-			ACSMummyMonster* MonsterTarget = Cast<ACSMummyMonster>(ControlledPawn);
-			if (MonsterTarget && MonsterTarget->PatrolPoints.Num() > 0)
-			{
-				AActor* NewTarget = Monster->PatrolPoints[FMath::RandRange(0, Monster->PatrolPoints.Num() - 1)];
-				Blackboard->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
-			}
-		}
-	}
-
-	//if (Monster->GetCurrentHP() <= 0.f)
-	//{
-	//	Monster->Die();
-	//	return;
-	//}
-
-	if (Monster->AttackRange < Distance)
-	{
-		Monster->EndAttack(nullptr, true);
 	}
 }

@@ -17,6 +17,5 @@ void UCSMummyMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (Monster)
 	{
 		bIsDead = Monster->bIsDead;
-		bIsAttack = Monster->bIsAttack;
 	}
 }

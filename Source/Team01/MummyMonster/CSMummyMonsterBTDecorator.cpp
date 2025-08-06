@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "CSMummyMonster.h"
 #include "Team01/Character/CSCharacterBase.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UCSMummyMonsterBTDecorator::UCSMummyMonsterBTDecorator()
 {
@@ -22,15 +23,6 @@ bool UCSMummyMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeCompone
 	{
 	case EMummyMonsterAIConditionType::IsDead:
 		return Monster->bIsDead;
-
-	case EMummyMonsterAIConditionType::IsAttacking:
-		return Monster->bIsAttack;
-
-	case EMummyMonsterAIConditionType::IsHit:
-		return Monster->bIsHit;
-
-	case EMummyMonsterAIConditionType::IsDetectedPlayer:
-		return Monster->bIsDetectedPlayer;
 
 	default:
 		return false;

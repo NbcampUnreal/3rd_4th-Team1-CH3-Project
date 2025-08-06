@@ -1,6 +1,7 @@
 #include "CSMummyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "CSMummyMonster.h"
 
 ACSMummyAIController::ACSMummyAIController()
 {
@@ -27,4 +28,17 @@ void ACSMummyAIController::OnPossess(APawn* InPawn)
 	{
 		RunBehaviorTree(BehaviorTreeAsset);
 	}
+
+	InitPatrolTarget(InPawn);
+}
+
+void ACSMummyAIController::InitPatrolTarget(APawn* InPawn)
+{
+	if (!Blackboardcomp || !InPawn) return;
+
+	ACSMummyMonster* Monster = Cast<ACSMummyMonster>(InPawn);
+	if (!Monster || Monster->PatrolPoints.Num() == 0) return;
+
+	AActor* NewTarget = Monster->PatrolPoints[FMath::RandRange(0, Monster->PatrolPoints.Num() - 1)];
+	Blackboardcomp->SetValueAsObject(TEXT("PatrolTarget"), NewTarget);
 }

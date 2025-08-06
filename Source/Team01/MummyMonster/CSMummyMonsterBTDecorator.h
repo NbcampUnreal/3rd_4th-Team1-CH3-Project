@@ -7,10 +7,7 @@
 UENUM(BlueprintType)
 enum class EMummyMonsterAIConditionType : uint8
 {
-	IsDead,
-	IsAttacking,
-	IsHit,
-	IsDetectedPlayer,
+	IsDead
 };
 
 UCLASS()
