@@ -22,7 +22,6 @@ void ACSPlayerController::BeginPlay()
 		HUDWidget->RemoveFromParent();
 		HUDWidget = nullptr;
 	}
-	
 	if (MainMenuWidget)
 	{
 		MainMenuWidget->RemoveFromParent();
@@ -148,39 +147,6 @@ void ACSPlayerController::ShowMainMenu(bool bIsRestart)
 					GetWorldTimerManager().ClearTimer(GameOverTitleBlinkTimer);
 				}
 			}
-		}
-	}
-}
-
-void ACSPlayerController::ShowOptionMenu()
-{
-	if (OptionWidgetClass)
-	{
-		if (MainMenuWidget)
-		{
-			MainMenuWidget->RemoveFromParent();
-			MainMenuWidget = nullptr;
-		}
-		
-		if (OptionWidget)
-		{
-			OptionWidget->RemoveFromParent();
-			OptionWidget = nullptr;
-		}
-
-		OptionWidget = CreateWidget<UUserWidget>(this, OptionWidgetClass);
-		if (OptionWidget)
-		{
-			OptionWidget->AddToViewport();
-
-			// 입력 모드 UIOnly로 전환 (필요 시)
-			FInputModeUIOnly InputMode;
-			InputMode.SetWidgetToFocus(OptionWidget->TakeWidget());
-			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			SetInputMode(InputMode);
-			bShowMouseCursor = true;
-
-			UE_LOG(LogTemp, Warning, TEXT("OptionMenu 생성 완료"));
 		}
 	}
 }

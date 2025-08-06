@@ -2,8 +2,6 @@
 #include "CSBossAIController.h"
 #include "Components/CapsuleComponent.h"
 #include "BrainComponent.h"
-#include "AIController.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Particles/ParticleSystem.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -44,81 +42,46 @@ void ACSBossMonster::BeginPlay()
 	{
 		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
 	}
-
-	EnableInput(GetWorld()->GetFirstPlayerController());
-
 }
 
 void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
 {
-	//공격을 실행할 수 있는지 가장 먼저 확인
-	if (!AttackMontages.Contains(AttackType))
+	// TMap에 우리가 요청한 공격 타입(AttackType)이 있는지 확인합니다.
+	// Contains() 함수는 해당 Key가 TMap에 존재하는지 안전하게 검사합니다.
+	if (AttackMontages.Contains(AttackType))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackMontages TMap does not contain AttackType: %d"), AttackType);
-		return;
-	}
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance || AnimInstance->IsAnyMontagePlaying())
-	{
-		return;
-	}
+		// TMap에서 AttackType에 맞는 몽타주를 찾아옵니다.
+		TObjectPtr<UAnimMontage> MontageToPlay = AttackMontages[AttackType];
 
-	SetCurrentState(ECharacterState::Attacking);
-
-	// 공격 타입에 맞는 특별 로직을 안전하게 실행합니다.
-	if (AttackType == EBossAttackType::GroundSlam)
-	{
-		AAIController* AIController = Cast<AAIController>(GetController());
-		if (AIController)
+		// 애니메이션 인스턴스와 재생할 몽타주가 모두 유효한지 확인합니다.
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (MontageToPlay && AnimInstance)
 		{
-			AActor* TargetPlayer = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("TargetPlayer")));
-			if (TargetPlayer)
+			// 다른 몽타주가 재생 중이지 않을 때만 새로 재생합니다. (중복 재생 방지)
+			if (!AnimInstance->IsAnyMontagePlaying())
 			{
-				// AI의 현재 이동/경로 탐색을 즉시 중단시켜 '유령 브레이크'를 해제합니다.
-				/*AIController->StopMovement();*/
+				SetCurrentState(ECharacterState::Attacking);
+				AnimInstance->Montage_Play(MontageToPlay);
 
-				/*if (AIController->GetBrainComponent())
-				{
-					AIController->GetBrainComponent()->PauseLogic(TEXT("Jumping Attack"));
-				}*/
-
-				// 플레이어를 향해 방향을 회전합니다.
-				FVector DirectionToPlayer = (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-				SetActorRotation(FRotator(0.f, DirectionToPlayer.Rotation().Yaw, 0.f));
-
-				// 계산된 힘으로 캐릭터를 점프시킵니다.
-				FVector Temp = DirectionToPlayer * GroundSlamJumpXYPower;
-				FVector LaunchVelocity = (DirectionToPlayer * GroundSlamJumpXYPower) + FVector(0, 0, GroundSlamJumpZPower);
-
-				/*this->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);*/
-
-				LaunchCharacter(LaunchVelocity, true, true);
-
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, FString::Printf(TEXT("Temp 변수 내용: %s"), *Temp.ToString()));
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("LaunchVelocity: %s"), *LaunchVelocity.ToString()));
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("DirectionToPlayer: %s"), *DirectionToPlayer.ToString()));
+				// 몽타주가 끝나면 EndAttack 함수를 호출하도록 예약(바인딩)합니다.
+				FOnMontageEnded MontageEndedDelegate;
+				// [this]는 이 클래스의 멤버 함수인 EndAttack을 호출하겠다는 의미입니다.
+				MontageEndedDelegate.BindUObject(this, &ACSBossMonster::EndAttack);
+				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, MontageToPlay);
 			}
 		}
 	}
-
-	// 4. 마지막으로 애니메이션 몽타주를 재생하고, 공격이 끝났을 때의 처리를 예약합니다.
-	TObjectPtr<UAnimMontage> MontageToPlay = AttackMontages[AttackType];
-	AnimInstance->Montage_Play(MontageToPlay);
-
-	FOnMontageEnded MontageEndedDelegate;
-	MontageEndedDelegate.BindUObject(this, &ACSBossMonster::EndAttack);
-	AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, MontageToPlay);
+	else
+	{
+		// 만약 요청한 공격 타입의 몽타주가 TMap에 등록되어 있지 않다면,
+		// 어떤 공격이 누락되었는지 로그를 남겨서 쉽게 디버깅할 수 있도록 합니다.
+		UE_LOG(LogTemp, Warning, TEXT("AttackMontages TMap does not contain AttackType: %d"), AttackType);
+	}
 }
 
 void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 {
 	Super::EndAttack(InMontage, bInterrupted);
-
-	/*AAIController* AIController = Cast<AAIController>(GetController());
-	if (AIController && AIController->GetBrainComponent())
-	{
-		AIController->GetBrainComponent()->ResumeLogic(TEXT("Attack Finished"));
-	}*/
 
 	// 공격이 중단되지 않고 정상적으로 끝났을 때
 	if (!bInterrupted)
