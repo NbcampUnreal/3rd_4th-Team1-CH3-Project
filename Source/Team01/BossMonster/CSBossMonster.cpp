@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Particles/ParticleSystem.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Team01/Character/CSPlayerCharacter.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
@@ -48,6 +49,26 @@ void ACSBossMonster::BeginPlay()
 	DefaultGravityScale = GetCharacterMovement()->GravityScale;
 
 	
+}
+
+void ACSBossMonster::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// 2페이즈 전환 상태일 때만 플레이어를 바라보도록 처리
+	if (GetCurrentState() == ECharacterState::PhaseTransition)
+	{
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		if (PlayerPawn)
+		{
+			// 보스에서 플레이어를 바라보는 방향 계산
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerPawn->GetActorLocation());
+
+			// Z축(Yaw) 회전만 부드럽게 적용
+			FRotator TargetRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, 2.0f));
+		}
+	}
 }
 
 void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
@@ -415,11 +436,4 @@ void ACSBossMonster::GoRagdoll()
 void ACSBossMonster::Disappear()
 {
 	Destroy();
-}
-
-void ACSBossMonster::OnLanded(const FHitResult& Hit)
-{
-	// 캐릭터가 땅에 착지하면, 중력 배율을 원래대로 되돌립니다.
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	UE_LOG(LogTemp, Warning, TEXT("Boss Landed! GravityScale Restored."));
 }

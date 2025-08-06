@@ -85,7 +85,7 @@ protected:
 
     virtual void BeginPlay() override;
 
-    virtual void OnLanded(const FHitResult& Hit);
+    virtual void Tick(float DeltaTime) override;
 
     float DefaultGravityScale;
 
