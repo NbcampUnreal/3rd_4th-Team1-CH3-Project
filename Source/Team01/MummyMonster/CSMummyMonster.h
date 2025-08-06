@@ -27,7 +27,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead;
 
-	UPROPERTY(EditInstanceOnly, Category = "Patrol Point")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
 
 	UFUNCTION()
