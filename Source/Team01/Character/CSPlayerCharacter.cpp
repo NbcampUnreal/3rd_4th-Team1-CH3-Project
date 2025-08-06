@@ -16,6 +16,8 @@
 #include "../Character/Controller/CSPlayerController.h"
 #include "../Ui/CS_WBP_HUD.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 
 ACSPlayerCharacter::ACSPlayerCharacter()
@@ -334,11 +336,13 @@ void ACSPlayerCharacter::StopCrouch(const FInputActionValue& InValue)
 
 void ACSPlayerCharacter::StartIronSight(const FInputActionValue& InValue)
 {
+	bIsAttackKeyPressed = true;
 	TargetFOV = 45.f;
 }
 
 void ACSPlayerCharacter::StopIronSight(const FInputActionValue& InValue)
 {
+	bIsAttackKeyPressed = false;
 	TargetFOV = 70.f;
 }
 
@@ -513,7 +517,7 @@ void ACSPlayerCharacter::TryFire()
     float HorizontalCompensationAngle = FMath::Atan2(WeaponOffsetFromCamera, DistanceToTarget);
     FVector DirectionToTarget = WeaponToTarget.GetSafeNormal();
     FRotator TargetRotation = DirectionToTarget.Rotation();
-    TargetRotation.Yaw += FMath::RadiansToDegrees(HorizontalCompensationAngle * 0.01f);
+    TargetRotation.Yaw += FMath::RadiansToDegrees(HorizontalCompensationAngle * 0.02f);
     FVector BulletDirection = TargetRotation.Vector();
 
     // 7. 실제 발사 라인트레이스
@@ -588,6 +592,13 @@ void ACSPlayerCharacter::ProcessHit(const FHitResult& HitResult)
     ACSCharacterBase* HittedCharacter = Cast<ACSCharacterBase>(HitResult.GetActor());
     if (IsValid(HittedCharacter))
     {
+    	UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			HitParticleSystem,
+			HitResult.Location,
+			HitResult.ImpactNormal.Rotation()
+    	);
+    	
         FDamageEvent DamageEvent;
         FString BoneNameString = HitResult.BoneName.ToString();
         

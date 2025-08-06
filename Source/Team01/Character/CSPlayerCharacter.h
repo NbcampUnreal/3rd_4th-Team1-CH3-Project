@@ -10,6 +10,7 @@ class UCameraComponent;
 class UCSInputConfig;
 class UInputMappingContext;
 class UAnimMontage;
+class UParticleSystem;
 
 // 잔탄 확인을 위한 Delegate 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBulletChanged, int32, NewBulletCount);
@@ -108,6 +109,9 @@ public:
 	int32 GetMaxBulletCount() const { return MaxBullet; }
 
 	float GetMaxShootRange() const { return MaxShootRange; }
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystem* HitParticleSystem;
 
 	UFUNCTION(BlueprintCallable)
 	void Reload();
