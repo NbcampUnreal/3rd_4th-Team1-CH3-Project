@@ -50,7 +50,13 @@ void APortalActor::ActivateItem_Implementation(AActor* Activator)
 		return;
 	}
 
+
 	PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.25f, FLinearColor::Black, true, true);
+
+	if (PortalWarpSound)
+	{
+		UGameplayStatics::SpawnSound2D(this, PortalWarpSound); 
+	}
 
 	FTimerHandle FadeTimer;
 

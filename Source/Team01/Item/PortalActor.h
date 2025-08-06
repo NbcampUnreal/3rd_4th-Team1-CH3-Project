@@ -32,6 +32,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* InteractionZone;
 
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* PortalWarpSound;
+
 
 
 
