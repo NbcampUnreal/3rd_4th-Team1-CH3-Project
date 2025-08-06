@@ -116,6 +116,20 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+protected:
+	// 디버그 시각화를 위한 헬퍼 함수
+	void DrawDebugVisualization(
+		const FVector& WeaponLocation,
+		const FVector& CameraLocation,
+		const FVector& TargetLocation,
+		const FHitResult& HitResult,
+		bool bHit,
+		const FVector& EndLocation,
+		int32 DebugType);
+
+	// 히트 처리를 위한 헬퍼 함수
+	void ProcessHit(const FHitResult& HitResult);
+
 	
 public:
 	// 위에서 선언한 Delegate 변수
@@ -133,7 +147,7 @@ protected:
 	int32 MaxBullet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Meta = (Units = cm))
-	float MaxShootRange = 12000.f;
+	float MaxShootRange = 4000.f;
 
 	
 #pragma endregion

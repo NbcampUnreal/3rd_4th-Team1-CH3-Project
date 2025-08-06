@@ -473,124 +473,135 @@ bool ACSPlayerCharacter::ConsumeBullet()
 
 void ACSPlayerCharacter::TryFire()
 {
-	if (IsValid(GetController()))
-	{
-#pragma region CalculateTargetTransform
+    if (!IsValid(GetController()))
+    {
+        return;
+    }
 
-		float FocalDistance = 400.f;	// 조준 거리
-		FVector FocalLocation, CameraLocation;	// 초점 위치, 카메라 위치
-		FRotator CameraRotation;	// 카메라 회전값
+    // 1. 카메라와 총구 위치 계산
+    FVector CameraLocation, WeaponLocation;
+    FRotator CameraRotation;
+    GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+    WeaponLocation = GetMesh()->GetSocketLocation(TEXT("FX_Gun_Barrel"));
 
-		// '플레이어의 시점' 을 통해 카메라 위치와 회전 Get
-		GetController()->GetPlayerViewPoint(CameraLocation, CameraRotation);
+    // 2. 카메라 조준선 계산
+    FVector CameraForward = CameraRotation.Vector();
+    FVector TraceEnd = CameraLocation + (CameraForward * MaxShootRange);
 
-		// 카메라가 바라보는 방향
-		FVector AimDirectionFromCamera = CameraRotation.Vector().GetSafeNormal();
-		// 조준점 위치 계산
-		FocalLocation = CameraLocation + (AimDirectionFromCamera * FocalDistance);
+    // 3. 조준점 찾기
+    FHitResult AimHitResult;
+    FCollisionQueryParams AimTraceParams(NAME_None, true, this);
+    AimTraceParams.AddIgnoredActor(this);
 
-		// 무기 위치를 확인 => 발사 위치 지정
-		FName WeaponSocketName = TEXT("FX_Gun_Barrel");
-		FVector WeaponLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
+    bool bHitSomething = GetWorld()->LineTraceSingleByChannel(
+        AimHitResult,
+        CameraLocation,
+        TraceEnd,
+        ECC_Visibility,
+        AimTraceParams
+    );
 
-		// 최종 조준점 위치
-		FVector FinalFocalLocation =
-			FocalLocation + (((WeaponLocation - FocalLocation) | AimDirectionFromCamera) * AimDirectionFromCamera);
+    // 4. 최종 타겟 위치 결정
+    FVector TargetLocation = bHitSomething ? AimHitResult.ImpactPoint : TraceEnd;
 
-		FTransform TargetTransform(CameraRotation, FinalFocalLocation);
+    // 5. 총구 오프셋 보정 계산
+    FVector WeaponToTarget = TargetLocation - WeaponLocation;
+    float DistanceToTarget = WeaponToTarget.Size();
+    float WeaponOffsetFromCamera = FVector::Dist2D(WeaponLocation, CameraLocation);
+    
+    // 6. 발사 방향 계산
+    float HorizontalCompensationAngle = FMath::Atan2(WeaponOffsetFromCamera, DistanceToTarget);
+    FVector DirectionToTarget = WeaponToTarget.GetSafeNormal();
+    FRotator TargetRotation = DirectionToTarget.Rotation();
+    TargetRotation.Yaw += FMath::RadiansToDegrees(HorizontalCompensationAngle * 0.01f);
+    FVector BulletDirection = TargetRotation.Vector();
 
-		if (1 == ShowAttackRangedDebug)
-		{
-			DrawDebugSphere(GetWorld(), WeaponLocation, 5.f, 16, FColor::Red, false, 10.f);
-			DrawDebugSphere(GetWorld(), CameraLocation, 5.f, 16, FColor::Yellow, false, 10.f);
-			DrawDebugSphere(GetWorld(), FinalFocalLocation, 5.f, 16, FColor::Magenta, false, 10.f);
+    // 7. 실제 발사 라인트레이스
+    FVector EndLocation = WeaponLocation + BulletDirection * MaxShootRange;
+    FHitResult FireHitResult;
+    FCollisionQueryParams FireTraceParams(NAME_None, true, this);
+    FireTraceParams.AddIgnoredActor(this);
 
-			DrawDebugLine(GetWorld(), FocalLocation, WeaponLocation, FColor::Yellow, false, 10.f, 0, 5.f);
-			DrawDebugLine(GetWorld(), CameraLocation, FinalFocalLocation, FColor::Blue, false, 10.f, 0, 5.f);
-			DrawDebugLine(GetWorld(), WeaponLocation, FinalFocalLocation, FColor::Red, false, 10.f, 0, 5.f);
-		}
+    bool bFireHit = GetWorld()->LineTraceSingleByChannel(
+        FireHitResult,
+        WeaponLocation,
+        EndLocation,
+        ECC_SHOOT,
+        FireTraceParams
+    );
 
-#pragma endregion
+    // 8. 디버그 시각화
+    if (ShowAttackRangedDebug > 0)
+    {
+        DrawDebugVisualization(WeaponLocation, CameraLocation, TargetLocation, 
+            FireHitResult, bFireHit, EndLocation, ShowAttackRangedDebug);
+    }
 
-#pragma region PerformLineTracing
+    // 9. 데미지 처리
+    if (bFireHit)
+    {
+        ProcessHit(FireHitResult);
+    }
+}
 
-		FVector BulletDirection = TargetTransform.GetUnitAxis(EAxis::X);
+// 디버그 시각화를 위한 헬퍼 함수
+void ACSPlayerCharacter::DrawDebugVisualization(
+    const FVector& WeaponLocation,
+    const FVector& CameraLocation,
+    const FVector& TargetLocation,
+    const FHitResult& HitResult,
+    bool bHit,
+    const FVector& EndLocation,
+    int32 DebugType)
+{
+    if (1 == DebugType)
+    {
+        // 기본 디버그 정보
+        DrawDebugSphere(GetWorld(), WeaponLocation, 5.f, 16, FColor::Red, false, 10.f);
+        DrawDebugSphere(GetWorld(), CameraLocation, 5.f, 16, FColor::Yellow, false, 10.f);
+        DrawDebugSphere(GetWorld(), TargetLocation, 5.f, 16, FColor::Magenta, false, 10.f);
+        DrawDebugLine(GetWorld(), WeaponLocation, CameraLocation, FColor::Yellow, false, 10.f, 0, 5.f);
+        DrawDebugLine(GetWorld(), CameraLocation, TargetLocation, FColor::Blue, false, 10.f, 0, 5.f);
+        DrawDebugLine(GetWorld(), WeaponLocation, TargetLocation, FColor::Red, false, 10.f, 0, 5.f);
+    }
+    else if (2 == DebugType)
+    {
+        // 발사 궤적 디버그
+        if (bHit)
+        {
+            DrawDebugSphere(GetWorld(), WeaponLocation, 5.f, 16, FColor::Red, false, 10.f);
+            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 5.f, 16, FColor::Green, false, 10.f);
+            DrawDebugLine(GetWorld(), WeaponLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
+        }
+        else
+        {
+            DrawDebugSphere(GetWorld(), WeaponLocation, 5.f, 16, FColor::Red, false, 10.f);
+            DrawDebugSphere(GetWorld(), EndLocation, 5.f, 16, FColor::Green, false, 10.f);
+            DrawDebugLine(GetWorld(), WeaponLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
+        }
+    }
+}
 
-		// 우측 탄도학 적용
-		FVector RightVector = TargetTransform.GetUnitAxis(EAxis::Y);
-		BulletDirection += RightVector * 0.05f;
-		BulletDirection = BulletDirection.GetSafeNormal();
-		
-		FVector StartLocation = WeaponLocation;
-		FVector EndLocation = StartLocation + BulletDirection * GetMaxShootRange();
-
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams(NAME_None, true, this);	// 의도적으로 시작부터 겹쳐도 사격가능하게 설정
-		TraceParams.AddIgnoredActor(this);	// 자기 자신 무시
-
-		bool IsCollided = GetWorld()->LineTraceSingleByChannel(
-			HitResult,
-			StartLocation,
-			EndLocation,
-			ECC_SHOOT,
-			TraceParams
-		);
-
-		// 충돌이 없을 경우
-		if (IsCollided == false)
-		{
-			HitResult.TraceStart = StartLocation;
-			HitResult.TraceEnd = EndLocation;
-		}
-
-		// 실제 발사체 충돌 검사
-		if (2 == ShowAttackRangedDebug)
-		{
-			if (IsCollided)
-			{
-				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-				DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 5.f, 16, FColor::Green, false, 10.f);
-
-				DrawDebugLine(GetWorld(), StartLocation, HitResult.ImpactPoint, FColor::Blue, false, 10.f, 0, 5.f);
-			}
-			else
-			{
-				DrawDebugSphere(GetWorld(), StartLocation, 5.f, 16, FColor::Red, false, 10.f);
-				DrawDebugSphere(GetWorld(), EndLocation, 5.f, 16, FColor::Green, false, 10.f);
-
-				DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 10.f, 0, 5.f);
-			}
-		}
-
-#pragma endregion
-
-		// 착탄 성공 시 TakeDamage
-		if (IsCollided)
-		{
-			ACSCharacterBase* HittedCharacter =
-				Cast<ACSCharacterBase>(HitResult.GetActor());
-			if (IsValid(HittedCharacter))
-			{
-				FDamageEvent DamageEvent;
-
-				// 피격 부위 확인
-				FString BoneNameString = HitResult.BoneName.ToString();
-				UKismetSystemLibrary::PrintString(this, BoneNameString);
-				DrawDebugSphere(GetWorld(), HitResult.Location,
-					3.f, 16, FColor(255,0,0,255), true, 20.f, 0U, 5.f);
-
-				if (BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
-				{
-					HittedCharacter->TakeDamage(AttackDamage * 3.f, DamageEvent, GetController(), this);
-				}
-				else
-				{
-					HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
-				}
-			}
-		}
-		
-	}
+// 히트 처리를 위한 헬퍼 함수
+void ACSPlayerCharacter::ProcessHit(const FHitResult& HitResult)
+{
+    ACSCharacterBase* HittedCharacter = Cast<ACSCharacterBase>(HitResult.GetActor());
+    if (IsValid(HittedCharacter))
+    {
+        FDamageEvent DamageEvent;
+        FString BoneNameString = HitResult.BoneName.ToString();
+        
+        DrawDebugSphere(GetWorld(), HitResult.Location, 3.f, 16, FColor(255,0,0,255), true, 20.f, 0U, 5.f);
+        
+        if (BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
+        {
+            HittedCharacter->TakeDamage(AttackDamage * 3.f, DamageEvent, GetController(), this);
+        }
+        else
+        {
+            HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+        }
+    }
 }
 
 void ACSPlayerCharacter::BeginAttack()
@@ -602,8 +613,7 @@ void ACSPlayerCharacter::BeginAttack()
 	// 변경: 상태를 'Attacking'으로 설정합니다.
 	SetCurrentState(ECharacterState::Attacking);
 	if (IsValid(AnimInstance) && IsValid(ShootMontage)
-		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false
-		&& bIsCrouching == false)
+		&& AnimInstance->Montage_IsPlaying(ShootMontage) == false)
 	{
 		AnimInstance->Montage_Play(ShootMontage);
 	}
