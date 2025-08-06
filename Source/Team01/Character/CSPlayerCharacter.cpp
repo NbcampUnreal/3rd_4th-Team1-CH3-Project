@@ -613,6 +613,16 @@ void ACSPlayerCharacter::ProcessHit(const FHitResult& HitResult)
             HittedCharacter->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
         }
     }
+
+	else
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (IsValid(HitActor) && HitActor->CanBeDamaged())
+		{
+			FDamageEvent DamageEvent;
+			HitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+		}
+	}
 }
 
 void ACSPlayerCharacter::BeginAttack()

@@ -27,7 +27,6 @@ AChestItem::AChestItem()
 		StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		StaticMesh->SetVisibility(false);
 	}
-	MaxHP = 20.f;
 	CurrentHP = MaxHP;
 	bIsOpened = false;
 	CachedActivator = nullptr;

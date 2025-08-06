@@ -37,7 +37,7 @@ protected:
 	TSubclassOf<AActor> MonsterClass;
 
 	UPROPERTY(EditAnywhere, Category = "Chest|Stats")
-	float MaxHP = 20.f;
+	float MaxHP = 10.f;
 
 	float CurrentHP;
 
