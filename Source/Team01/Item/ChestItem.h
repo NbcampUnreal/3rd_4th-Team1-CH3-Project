@@ -30,9 +30,17 @@ protected:
 	FTimerHandle LidOpenTimer;
 	FRotator TargetLidRotation;
 
-private:
+	UPROPERTY(EditAnywhere, Category = "Chest")
+	TSubclassOf<ABaseItem> PotionItemClass;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category = "Chest")
+	TSubclassOf<AActor> MonsterClass;
+
+	UPROPERTY(EditAnywhere, Category = "Chest|Stats")
+	float MaxHP = 20.f;
+
+	float CurrentHP;
+
 	bool bIsOpened;
 
 	UPROPERTY()
@@ -41,5 +49,10 @@ private:
 
 	void OpenChest();
 	void TickLidRotation();
-	
+	void DropPotion();
+
+public:
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
 };
