@@ -50,13 +50,13 @@ void APortalActor::ActivateItem_Implementation(AActor* Activator)
 		return;
 	}
 
-	PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.01f, FLinearColor::Black, true, true);
+	PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.25f, FLinearColor::Black, true, true);
 
 	FTimerHandle FadeTimer;
 
 	GetWorld()->GetTimerManager().SetTimer(FadeTimer, [this, Activator, PC]()
 		{
 			Activator->SetActorLocation(TargetLocation);
-			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.0f, FLinearColor::Black, false, true);
+			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.0f, FLinearColor::Black, false, false);
 		}, 1.0f, false);
 }
