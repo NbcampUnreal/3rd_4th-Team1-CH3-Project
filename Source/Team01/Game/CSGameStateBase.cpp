@@ -34,20 +34,18 @@ void ACSGameStateBase::AddKill()
 	{
 		SetMissionState(EMissionState::KillEnemies);
 	}
-	else if (TotalKillCount == 14)
+	else if (TotalKillCount == 15)
 	{
 		SetMissionState(EMissionState::BossFight);
 	}
-	else if (CurrentMissionState == EMissionState::KillEnemies)
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		if (ACSPlayerController* CSController = Cast<ACSPlayerController>(PC))
 		{
-			if (ACSPlayerController* CSController = Cast<ACSPlayerController>(PC))
+			if (UCS_WBP_HUD* HUD = CSController->GetHUDWidget())
 			{
-				if (UCS_WBP_HUD* HUD = CSController->GetHUDWidget())
-				{
-					HUD->UpdateMissionStatus(GetMissionText(CurrentMissionState, TotalKillCount));
-				}
+				HUD->UpdateMissionStatus(GetMissionText(CurrentMissionState, TotalKillCount));
 			}
 		}
 	}
