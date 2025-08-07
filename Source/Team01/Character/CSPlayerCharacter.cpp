@@ -15,6 +15,8 @@
 #include "ItemInterface.h"
 #include "../Character/Controller/CSPlayerController.h"
 #include "../Ui/CS_WBP_HUD.h"
+#include "Animation/CSUltProjectile.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
@@ -900,7 +902,18 @@ void ACSPlayerCharacter::FireUltEffect()
 	// 투사체 발사
 	if (IsValid(UltProjectileClass))
 	{
-		GetWorld()->SpawnActor<AActor>(UltProjectileClass, SpawnLocation, SpawnRotation);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		// 투사체 스폰
+		ACSUltProjectile* Projectile =
+			GetWorld()->SpawnActor<ACSUltProjectile>(UltProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (IsValid(Projectile) && Projectile->ProjectileMovement)
+		{
+			FVector LaunchDirection = SpawnRotation.Vector();
+			Projectile->ProjectileMovement->Velocity = LaunchDirection * Projectile->ProjectileMovement->InitialSpeed;
+		}
 	}
 	StopCastingEffect();
 }
