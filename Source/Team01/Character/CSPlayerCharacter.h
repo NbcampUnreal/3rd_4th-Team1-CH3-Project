@@ -11,6 +11,16 @@ class UCSInputConfig;
 class UInputMappingContext;
 class UAnimMontage;
 class UParticleSystem;
+class UParticleSystemComponent;
+
+UENUM(BlueprintType)
+enum class EUltCastState : uint8
+{
+	None,
+	Casting,
+	ReadyToFire,
+	CoolDown
+};
 
 // 잔탄 확인을 위한 Delegate 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBulletChanged, int32, NewBulletCount);
@@ -176,6 +186,7 @@ public:
 	FIKGoalData LeftHandIKGoal;
 
 protected:
+	UFUNCTION()
 	FTransform CalculateLeftHandIKGoalTransform();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -197,6 +208,69 @@ protected:
 	float TargetRagdollBlendWeight = 0.f;
 	float CurrentRagdollBlendWeight = 0.f;
 	bool bIsNowRagdollBlending = false;
+	
+#pragma endregion
+
+#pragma region Ult
+
+protected:
+	void OnUltCastPressed(const FInputActionValue& InValue);
+	void OnUltCastReleased(const FInputActionValue& InValue);
+
+	UFUNCTION(BlueprintCallable)
+	void FireUltEffect();
+
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EUltCastState UltCastState;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float MinCastTime = 1.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float MaxCastTime = 3.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float CurrentCastTime;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float CoolDownTime = 5.f;
+
+	FTimerHandle CastTimerHandle;
+	FTimerDelegate TimerDelegateForMaxCast;
+	FTimerHandle CastUpdateTimerHandle;
+	FTimerDelegate TimerDelegateForCastUpdate;
+	FTimerHandle CoolDownTimerHandle;
+	FTimerDelegate TimerDelegateForCoolDown;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystem* UltCastParticleEffect;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystem* UltFireParticleEffect;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	USoundCue* UltCastSound;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	USoundWave* UltFireSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	TSubclassOf<AActor> UltProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName UltCastStartSectionName;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName UltCastLoopSectionName;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName UltCastEndSectionName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> UltCastingMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAnimMontage> UltFireMontage;
+
+private:
+	UPROPERTY()
+	UParticleSystemComponent* UltCastParticleEffectComponent;
+
+	void StartCastingEffect();
+	void StopCastingEffect();
 	
 #pragma endregion
 

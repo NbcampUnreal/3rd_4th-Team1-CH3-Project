@@ -18,6 +18,8 @@
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 
 ACSPlayerCharacter::ACSPlayerCharacter()
@@ -230,6 +232,20 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			ETriggerEvent::Started,
 			this,
 			&ACSPlayerCharacter::TryActivateNearbyItem
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Ult,
+			ETriggerEvent::Triggered,
+			this,
+			&ThisClass::OnUltCastPressed
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Ult,
+			ETriggerEvent::Completed,
+			this,
+			&ThisClass::OnUltCastReleased
 		);
 	}
 }
@@ -477,6 +493,12 @@ bool ACSPlayerCharacter::ConsumeBullet()
 
 void ACSPlayerCharacter::TryFire()
 {
+	// 궁극기 캐스팅 중이면 사격 불가
+	// if (UltCastState == EUltCastState::Casting)
+	// {
+	// 	return;
+	// }
+	
     if (!IsValid(GetController()))
     {
         return;
@@ -703,6 +725,211 @@ FTransform ACSPlayerCharacter::CalculateLeftHandIKGoalTransform()
 		FTransform(FRotator(18.1, 80.3, 164.7), FVector(10.4, -1.7, 0.3)); // 손에 총이 잡히는 상대 위치/회전
 
 	return WeaponLRelativeToHandTransform * HandLWorldTransform; // hand_l 기준으로 weapon_l의 목표 위치 계산
+}
+
+void ACSPlayerCharacter::OnUltCastPressed(const FInputActionValue& InValue)
+{
+	if (UltCastState == EUltCastState::Casting || UltCastState == EUltCastState::CoolDown)
+	{
+		return;
+	}
+
+	// 캐스팅 시작
+	UltCastState = EUltCastState::Casting;
+	CurrentCastTime = 0.f;
+
+	// 파티클 재생
+	StartCastingEffect();
+
+	GetCharacterMovement()->MaxWalkSpeed = 150.f;
+
+	UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+	
+	if (IsValid(AnimInstance) && IsValid(UltCastingMontage))
+	{
+		if (!AnimInstance->Montage_IsPlaying(UltCastingMontage))
+		{
+			AnimInstance->Montage_Play(UltCastingMontage);
+			AnimInstance->Montage_JumpToSection(UltCastStartSectionName, UltCastingMontage);
+		}
+		else
+		{
+			AnimInstance->Montage_JumpToSection(UltCastLoopSectionName, UltCastingMontage);
+		}
+	}
+
+	if (IsValid(UltCastSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			UltCastSound,
+			GetActorLocation()
+		);
+	}
+
+	// 파티클 이펙트 스폰
+	// if (IsValid(UltCastParticleEffect))
+	// {
+	// 	UGameplayStatics::SpawnEmitterAtLocation(
+	// 		GetWorld(),
+	// 		UltCastParticleEffect,
+	// 		GetMesh()->GetSocketLocation(TEXT("hand_r_ability_socket")),
+	// 		GetActorRotation()
+	// 	);
+	// }
+
+	// 캐스팅 타이머 시작
+	TimerDelegateForMaxCast.BindLambda([this]()
+	{
+		UltCastState = EUltCastState::ReadyToFire;
+	});
+	GetWorldTimerManager().SetTimer(
+		CastTimerHandle,
+		TimerDelegateForMaxCast,
+		MaxCastTime,
+		false
+	);
+
+	TimerDelegateForCastUpdate.BindLambda([this]()
+	{
+		if (UltCastState == EUltCastState::Casting)
+		{
+			CurrentCastTime += GetWorldTimerManager().GetTimerRate(CastUpdateTimerHandle);
+		}
+	});
+	GetWorldTimerManager().SetTimer(
+		CastUpdateTimerHandle,
+		TimerDelegateForCastUpdate,
+		0.05f,
+		true
+	);
+	
+}
+
+void ACSPlayerCharacter::OnUltCastReleased(const FInputActionValue& InValue)
+{
+	if (UltCastState != EUltCastState::Casting
+		&& UltCastState != EUltCastState::ReadyToFire)
+	{
+		return;
+	}
+
+	GetWorldTimerManager().ClearTimer(CastTimerHandle);
+	GetWorldTimerManager().ClearTimer(CastUpdateTimerHandle);
+
+	// 파티클 재생 종료
+	StopCastingEffect();
+
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+
+	UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+	
+	if (CurrentCastTime >= MinCastTime)
+	{
+		// 캐스팅 애니메이션 몽타주 종료
+		if (IsValid(AnimInstance) && AnimInstance->Montage_IsPlaying(UltCastingMontage))
+		{
+			AnimInstance->Montage_JumpToSection(UltCastEndSectionName, UltCastingMontage);
+		}
+		// 사출
+		FireUltEffect();
+		
+		UltCastState = EUltCastState::CoolDown;
+		TimerDelegateForCoolDown.BindLambda([this]()
+		{
+			UltCastState = EUltCastState::None;
+		});
+		GetWorldTimerManager().SetTimer(
+			CoolDownTimerHandle,
+			TimerDelegateForCoolDown,
+			CoolDownTime,
+			false
+		);
+	}
+	else
+	{
+		UltCastState = EUltCastState::None;
+
+		if (IsValid(AnimInstance) && AnimInstance->Montage_IsPlaying(UltCastingMontage))
+		{
+			AnimInstance->Montage_Stop(0.25f, UltCastingMontage);
+		}
+	}
+}
+
+void ACSPlayerCharacter::FireUltEffect()
+{
+	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 280.f + GetActorRightVector() * 70.f;
+	FRotator SpawnRotation = GetActorRotation();
+
+	UCSPlayerAnimInstance* AnimInstance =
+		Cast<UCSPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	checkf(IsValid(AnimInstance), TEXT("Invalid AnimInstance"));
+	
+	if (IsValid(AnimInstance) && IsValid(UltFireMontage)
+		&& AnimInstance->Montage_IsPlaying(UltFireMontage) == false)
+	{
+		AnimInstance->Montage_Play(UltFireMontage);
+	}
+	
+	// 파티클 이펙트 스폰
+	if (IsValid(UltFireParticleEffect))
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			UltFireParticleEffect,
+			SpawnLocation,
+			FRotator(SpawnRotation.Pitch, SpawnRotation.Yaw - 90.f, SpawnRotation.Roll)
+		);
+	}
+
+	// 사운드 재생
+	if (IsValid(UltFireSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			UltFireSound,
+			SpawnLocation
+		);
+	}
+
+	// 투사체 발사
+	if (IsValid(UltProjectileClass))
+	{
+		GetWorld()->SpawnActor<AActor>(UltProjectileClass, SpawnLocation, SpawnRotation);
+	}
+	StopCastingEffect();
+}
+
+void ACSPlayerCharacter::StartCastingEffect()
+{
+	StopCastingEffect();
+
+	if (UltCastParticleEffect)
+	{
+		UltCastParticleEffectComponent = UGameplayStatics::SpawnEmitterAttached(
+			UltCastParticleEffect,
+			GetMesh(),
+			TEXT("hand_r_ability_socket"),
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			true
+		);
+	}
+}
+
+void ACSPlayerCharacter::StopCastingEffect()
+{
+	if (IsValid(UltCastParticleEffectComponent))
+	{
+		UltCastParticleEffectComponent->DeactivateSystem();
+		UltCastParticleEffectComponent = nullptr;
+	}
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()
