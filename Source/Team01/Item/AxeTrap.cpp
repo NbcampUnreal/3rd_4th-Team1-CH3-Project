@@ -30,6 +30,8 @@ void AAxeTrap::BeginPlay()
 	Super::BeginPlay();
 	InitialRotation = AxeMesh->GetRelativeRotation();
 	
+	TimeOffset = FMath::FRandRange(0.f, PI * 2.f);
+	RotationSpeed = FMath::FRandRange(1.5f, 3.5f);
 }
 
 void AAxeTrap::Tick(float DeltaTime)
@@ -37,8 +39,8 @@ void AAxeTrap::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	RunningTime += DeltaTime;
-	float SwingAngle = FMath::Sin(RunningTime * 2.f) * 45.f;
-	FRotator NewRotation = InitialRotation + FRotator(SwingAngle, 0.f, 0.f); // Yaw 기준 회전
+	float SwingAngle = FMath::Sin(RunningTime * RotationSpeed + TimeOffset) * 60.f;
+	FRotator NewRotation = InitialRotation + FRotator(SwingAngle, 0.f, 0.f); 
 	AxeMesh->SetRelativeRotation(NewRotation);
 
 }
@@ -56,6 +58,19 @@ void AAxeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 	if (Player)
 	{
 		UGameplayStatics::ApplyDamage(Player, Damage, GetInstigatorController(), this, nullptr);
+		
+		FVector KnockbackDir = AxeMesh->GetRightVector();
+		KnockbackDir.Z = 0.f;
+		KnockbackDir.Normalize();
+		FVector ToPlayer = Player->GetActorLocation() - GetActorLocation();
+		if (FVector::DotProduct(KnockbackDir, ToPlayer) < 0)
+		{
+			KnockbackDir *= -1.f;
+		}
+		KnockbackDir += FVector(0, 0, 0.5f);
+		KnockbackDir.Normalize();
+		float KnockbackPower = 800.f;
+		Player->LaunchCharacter(KnockbackDir * KnockbackPower, true, true);
 
 		bCanDamage = false;
 		GetWorld()->GetTimerManager().SetTimer(InvincibilityTimer, this, &AAxeTrap::ResetDamage, InvincibilityDuration, false);

@@ -35,6 +35,9 @@ protected:
 	bool bCanDamage = true;
 	FTimerHandle InvincibilityTimer;
 
+	float TimeOffset = 0.f;
+	float RotationSpeed = 2.f;
+
 	void ResetDamage();
 
 	UFUNCTION()
