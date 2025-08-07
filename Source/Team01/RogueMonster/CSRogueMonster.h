@@ -61,6 +61,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
 
+	UPROPERTY(EditAnywhere, Category = "Ranged")
+	TSubclassOf<AActor> DaggerClass;
+
 	UPROPERTY()
 	APawn* PlayerPawn;
 
@@ -69,6 +72,9 @@ public:
 	UFUNCTION()
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser);
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyAttackDamage();
 
 	void LookAtPlayer();
 

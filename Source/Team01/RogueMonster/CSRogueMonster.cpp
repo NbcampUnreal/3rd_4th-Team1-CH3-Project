@@ -7,6 +7,7 @@
 #include "Perception/PawnSensingComponent.h"
 #include "AIController.h"
 #include "../Character/Controller/CSPlayerController.h"
+#include "CSDagger.h"
 
 ACSRogueMonster::ACSRogueMonster()
 {
@@ -72,6 +73,23 @@ void ACSRogueMonster::BeginAttack()
 	}
 }
 
+void ACSRogueMonster::ApplyAttackDamage()
+{
+	if (bIsDead || !PlayerPawn) return;
+
+	const float Distance = FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation());
+
+	if (Distance > AttackRange) return;
+
+	UGameplayStatics::ApplyDamage(
+		PlayerPawn,
+		HitDamage,
+		GetController(),
+		this,
+		UDamageType::StaticClass()
+	);
+}
+
 void ACSRogueMonster::BeginRangeAttack()
 {
 	if (bIsDead || bIsAttack || bIsRangeAttack) return;
@@ -83,6 +101,19 @@ void ACSRogueMonster::BeginRangeAttack()
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
 		AIController->StopMovement();
+	}
+
+	if (DaggerClass && PlayerPawn)
+	{
+		FVector MuzzleLocation = GetActorLocation() + FVector(0, 0, 50) + GetActorForwardVector() * 100.f;
+		FVector Direction = (PlayerPawn->GetActorLocation() - MuzzleLocation).GetSafeNormal();
+
+		FActorSpawnParameters SpawnParams;
+		ACSDagger* Dagger = GetWorld()->SpawnActor<ACSDagger>(DaggerClass, MuzzleLocation, FRotator::ZeroRotator, SpawnParams);
+		if (Dagger)
+		{
+			Dagger->SetDirection(Direction);
+		}
 	}
 }
 
