@@ -13,6 +13,7 @@
 #include "Team01/Character/CSPlayerCharacter.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "../Ui/CS_WBP_HUD.h"
+#include "../Ui/CSGameClear.h"
 #include "../Character/Controller/CSPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -459,10 +460,11 @@ void ACSBossMonster::Die()
 
 	UE_LOG(LogTemp, Error, TEXT("Boss is Dead!"));
 
-	if (LastInstigator)
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(LastInstigator))
+		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(PC))
 		{
+			// 킬로그 및 점수 처리
 			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
 			{
 				PlayerController->AddKillCount();
@@ -470,12 +472,12 @@ void ACSBossMonster::Die()
 				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
 				HUD->ShowKillConfirmMessage(TEXT("Boss Kill!!"));
 			}
-			
-			if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
-            {
-            	GS->SetMissionState(EMissionState::MissionClear);
-            }
 		}
+	}
+	
+	if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
+	{
+		GS->SetMissionState(EMissionState::MissionClear);
 	}
 	
 	GetWorld()->GetTimerManager().SetTimer(

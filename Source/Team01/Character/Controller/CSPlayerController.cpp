@@ -1,5 +1,6 @@
 #include "CSPlayerController.h"
 #include "../Source/Team01/Ui/CS_WBP_HUD.h"
+#include "../Ui/CSGameClear.h"
 #include "Blueprint/UserWidget.h"
 #include "../Game/CSGameStateBase.h"
 #include "CSPlayerCharacter.h"
@@ -268,5 +269,40 @@ void ACSPlayerController::AddScore(int32 ScoreValue)
 	if (HUDWidget)
 	{
 		HUDWidget->UpdateScore(Score);
+	}
+}
+
+void ACSPlayerController::ShowGameClearUI()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[PlayerController] ShowGameClearUI 호출됨"));
+	UE_LOG(LogTemp, Warning, TEXT("[PlayerController] GameClearUIWidget: %s"), *GetNameSafe(GameClearUIWidget));
+	UE_LOG(LogTemp, Warning, TEXT("[PlayerController] GameClearUIWidgetClass: %s"), *GetNameSafe(GameClearUIWidgetClass));
+
+	if (!GameClearUIWidget && GameClearUIWidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PlayerController] GameClearUI 위젯 생성 시작"));
+		GameClearUIWidget = CreateWidget<UUserWidget>(this, GameClearUIWidgetClass);
+	}
+
+	if (GameClearUIWidget && !GameClearUIWidget->IsInViewport())
+	{
+		GameClearUIWidget->AddToViewport();
+		UE_LOG(LogTemp, Warning, TEXT("[PlayerController] GameClearUI 화면에 표시됨"));
+
+		bShowMouseCursor = true;
+
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(GameClearUIWidget->TakeWidget());
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(InputMode);
+
+		if (UCS_WBP_GameClearUI* ClearUI = Cast<UCS_WBP_GameClearUI>(GameClearUIWidget))
+		{
+			ClearUI->SetFinalScore(Score); // 또는 GetScore()
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[PlayerController] GameClearUIWidget 생성 실패 또는 이미 표시 중"));
 	}
 }

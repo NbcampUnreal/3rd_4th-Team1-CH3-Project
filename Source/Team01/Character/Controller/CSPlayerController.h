@@ -25,7 +25,9 @@ public:
 	void UpdateAmmoHUD(int32 CurrentAmmo, int32 MaxAmmo);
 	UFUNCTION()
 	void OnBulletChanged_Handler(int32 NewBulletCount);
-
+	void ShowGameClearUI();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> GameClearUIWidgetClass;
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category="UI")
@@ -33,6 +35,8 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCS_WBP_HUD> HUDWidget;
+	
+	UUserWidget* GameClearUIWidget;
 	
 #pragma endregion HUD
 
