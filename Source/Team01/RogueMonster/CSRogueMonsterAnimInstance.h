@@ -21,6 +21,9 @@ protected:
 	bool bIsAttack;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
+	bool bIsRangeAttack;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
 	bool bIsHit;
 
 	UPROPERTY()

@@ -17,5 +17,8 @@ void UCSRogueMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (Monster)
 	{
 		bIsDead = Monster->bIsDead;
+		bIsAttack = Monster->bIsAttack;
+		bIsRangeAttack = Monster->bIsRangeAttack;
+		bIsHit = Monster->bIsHit;
 	}
 }

@@ -8,7 +8,8 @@ UENUM(BlueprintType)
 enum class ERogueAIConditionType : uint8
 {
 	IsDead,
-	IsAttack,
+	IsAttacking,
+	IsRangeAttacking,
 	IsHit,
 	IsDetectedPlayer
 };

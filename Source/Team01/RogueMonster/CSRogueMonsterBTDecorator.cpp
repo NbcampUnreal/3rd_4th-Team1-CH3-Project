@@ -1,4 +1,5 @@
 #include "CSRogueMonsterBTDecorator.h"
+#include "CSRogueMonsterBTService.h"
 #include "AIController.h"
 #include "CSRogueMonster.h"
 #include "Team01/Character/CSCharacterBase.h"
@@ -19,13 +20,23 @@ bool UCSRogueMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeCompone
 	ACSRogueMonster* Monster = Cast<ACSRogueMonster>(ControlledPawn);
 	if (!Monster) return false;
 
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return false;
+
+	bool bIsAttackRange = BB->GetValueAsBool(TEXT("IsInAttackRange"));
+	bool bInRangedAttackRange = BB->GetValueAsBool(TEXT("IsInRangeAttackRange"));
+
 	switch (ConditionType)
 	{
 	case ERogueAIConditionType::IsDead:
 		return Monster->bIsDead;
 
-	case ERogueAIConditionType::IsAttack:
-		return Monster->bIsAttack;
+	case ERogueAIConditionType::IsAttacking:
+		return bIsAttackRange && !bInRangedAttackRange;
+	
+
+	case ERogueAIConditionType::IsRangeAttacking:
+		return !bIsAttackRange && bInRangedAttackRange;
 
 	case ERogueAIConditionType::IsHit:
 		return Monster->bIsHit;

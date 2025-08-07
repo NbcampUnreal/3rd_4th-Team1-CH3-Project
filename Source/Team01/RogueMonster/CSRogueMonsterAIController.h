@@ -26,6 +26,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UBlackboardData* BlackboardAsset;
-
-	void InitPatrolTarget(APawn* InPawn);
 };

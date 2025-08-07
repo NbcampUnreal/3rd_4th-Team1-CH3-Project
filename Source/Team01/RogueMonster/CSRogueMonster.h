@@ -16,24 +16,41 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly)
-	float HitDamage;
-
+	float MaxHP;
 	float CurrentHP;
 
-	float MaxHP;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float HitDamage;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly)
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
+	float RangedHitDamage;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "AI|Detection")
 	float AttackRange;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Detection")
+	float RangedAttackRange;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "AI|Detection")
 	float SightRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Movement")
+	float PatrolSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Movement")
+	float ChaseSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Movement")
+	float CloseRangeSpeed;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	bool bIsAttack;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsRangeAttack;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsHit;
@@ -44,19 +61,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
 
+	UPROPERTY()
+	APawn* PlayerPawn;
+
+public:
+
 	UFUNCTION()
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser);
 
-	void Die();
-
-	UPROPERTY()
-	APawn* PlayerPawn;
+	void LookAtPlayer();
 
 	void BeginAttack();
 
-	UFUNCTION()
+	void BeginRangeAttack();
+
+	UFUNCTION(BlueprintCallable)
 	void EndAttack();
 
-
+	void Die();
 };

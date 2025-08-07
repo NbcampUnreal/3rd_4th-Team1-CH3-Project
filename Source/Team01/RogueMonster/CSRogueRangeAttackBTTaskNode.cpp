@@ -1,16 +1,16 @@
-#include "CSRogueMonsterBTTaskNode.h"
+#include "CSRogueRangeAttackBTTaskNode.h"
 #include "AIController.h"
 #include "CSRogueMonster.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
-UCSRogueMonsterBTTaskNode::UCSRogueMonsterBTTaskNode()
+UCSRogueRangeAttackBTTaskNode::UCSRogueRangeAttackBTTaskNode()
 {
-	NodeName = TEXT("Attack Task");
+	NodeName = TEXT("Range Attack Task");
 }
 
-EBTNodeResult::Type UCSRogueMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UCSRogueRangeAttackBTTaskNode::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!AIController) return EBTNodeResult::Failed;
@@ -23,7 +23,8 @@ EBTNodeResult::Type UCSRogueMonsterBTTaskNode::ExecuteTask(UBehaviorTreeComponen
 
 	AIController->StopMovement();
 
-	Monster->BeginAttack();
+	Monster->BeginRangeAttack();
+
 
 	return EBTNodeResult::Succeeded;
 }
