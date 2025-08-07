@@ -49,6 +49,22 @@ void ACSBossMonster::BeginPlay()
 
 	DefaultGravityScale = GetCharacterMovement()->GravityScale;
 
+	// 스켈레탈 메시에 적용된 머티리얼의 개수만큼
+	const int32 MaterialCount = GetMesh()->GetNumMaterials();
+	for (int32 i = 0; i < MaterialCount; ++i)
+	{
+		// 원본 머티리얼을 가져옵니다.
+		UMaterialInterface* OriginalMaterial = GetMesh()->GetMaterial(i);
+		if (OriginalMaterial)
+		{
+			// 원본을 기반으로 동적 머티리얼 인스턴스를 생성
+			UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(OriginalMaterial, this);
+			// 생성된 동적 머티리얼을 다시 메시에 적용
+			GetMesh()->SetMaterial(i, DynamicMaterial);
+			// 나중에 제어하기 쉽도록 배열에 추가
+			BossDynamicMaterials.Add(DynamicMaterial);
+		}
+	}
 	
 }
 
@@ -70,16 +86,51 @@ void ACSBossMonster::Tick(float DeltaTime)
 			SetActorRotation(FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, 2.0f));
 		}
 	}
+
+	if (bIsTransitioningMaterial)
+	{
+		// 현재 값을 목표 값으로 부드럽게하는 보간작업
+		CurrentGlowAmount = FMath::FInterpTo(CurrentGlowAmount, TargetGlowAmount, DeltaTime, MaterialTransitionSpeed);
+		CurrentEnrageValue = FMath::FInterpTo(CurrentEnrageValue, TargetEnrageValue, DeltaTime, MaterialTransitionSpeed);
+
+		// --- Element 0번부터 3번 머티리얼의 "GlowAmount" 파라미터 변경 ---
+		for (int32 i = 0; i <= 3; ++i)
+		{
+			// 해당 인덱스의 머티리얼이 유효한지 확인
+			if (BossDynamicMaterials.IsValidIndex(i) && BossDynamicMaterials[i])
+			{
+				BossDynamicMaterials[i]->SetScalarParameterValue(FName("GlowAmount"), CurrentGlowAmount);
+			}
+		}
+
+		// --- Element 7번 머티리얼의 "Enrage" 파라미터 변경 ---
+		if (BossDynamicMaterials.IsValidIndex(7) && BossDynamicMaterials[7]) // 7번 인덱스 유효성 확인
+		{
+			BossDynamicMaterials[7]->SetScalarParameterValue(FName("Enrage"), CurrentEnrageValue);
+		}
+
+		// 전환이 거의 완료되었는지 확인
+		if (FMath::IsNearlyEqual(CurrentGlowAmount, TargetGlowAmount, 0.01f) &&
+			FMath::IsNearlyEqual(CurrentEnrageValue, TargetEnrageValue, 0.01f))
+		{
+			bIsTransitioningMaterial = false; // 불필요한 연산을 막기 위해 전환 상태를 종료
+		}
+	}
+
 }
 
 void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
 {
-	//공격을 실행할 수 있는지 가장 먼저 확인
-	if (!AttackMontages.Contains(AttackType))
+	// 공격 타입에 해당하는 'FAttackMontageArray' 구조체를 찾기
+	const FAttackMontageArray* MontageStruct = AttackMontages.Find(AttackType);
+
+	// 구조체가 유효하지 않거나, 구조체 안의 몽타주 배열이 비어있으면 함수를 종료
+	if (!MontageStruct || MontageStruct->Montages.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackMontages TMap does not contain AttackType: %d"), AttackType);
+		UE_LOG(LogTemp, Warning, TEXT("AttackMontages TMap does not contain valid montages for AttackType: %d"), AttackType);
 		return;
 	}
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (!AnimInstance || AnimInstance->IsAnyMontagePlaying())
 	{
@@ -87,6 +138,11 @@ void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
 	}
 
 	SetCurrentState(ECharacterState::Attacking);
+
+	// 구조체 안의 Montages 배열에서 랜덤 인덱스를 선택합니다.
+	const int32 RandomIndex = FMath::RandRange(0, MontageStruct->Montages.Num() - 1);
+	// 랜덤 인덱스에 해당하는 몽타주를 가져옵니다.
+	TObjectPtr<UAnimMontage> MontageToPlay = MontageStruct->Montages[RandomIndex];
 
 	// 공격 타입에 맞는 특별 로직을 안전하게 실행합니다.
 	if (AttackType == EBossAttackType::GroundSlam)
@@ -126,13 +182,14 @@ void ACSBossMonster::BeginAttackPattern(EBossAttackType AttackType)
 		}
 	}
 
-	// 4. 마지막으로 애니메이션 몽타주를 재생하고, 공격이 끝났을 때의 처리를 예약합니다.
-	TObjectPtr<UAnimMontage> MontageToPlay = AttackMontages[AttackType];
-	AnimInstance->Montage_Play(MontageToPlay);
+	if (MontageToPlay)
+	{
+		AnimInstance->Montage_Play(MontageToPlay);
 
-	FOnMontageEnded MontageEndedDelegate;
-	MontageEndedDelegate.BindUObject(this, &ACSBossMonster::EndAttack);
-	AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, MontageToPlay);
+		FOnMontageEnded MontageEndedDelegate;
+		MontageEndedDelegate.BindUObject(this, &ACSBossMonster::EndAttack);
+		AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, MontageToPlay);
+	}
 }
 
 void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
@@ -363,6 +420,11 @@ void ACSBossMonster::EnterPhase2()
 			EAttachLocation::SnapToTarget
 		);
 	}
+
+	// 머티리얼 전환을 시작하라는 플래그
+	bIsTransitioningMaterial = true;
+	TargetGlowAmount = 300.0f; // GlowAmount의 최종 목표치
+	TargetEnrageValue = 2.0f;     // Enrage의 최종 목표치
 }
 
 void ACSBossMonster::TryStateTransition() // 하고 있던 일이 끝나는 시점과 데미지를 입은 직후에 상태전환을 체크할 함수

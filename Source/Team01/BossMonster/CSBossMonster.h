@@ -5,6 +5,15 @@
 #include "Components/WidgetComponent.h"
 #include "CSBossMonster.generated.h"
 
+USTRUCT(BlueprintType)
+struct FAttackMontageArray
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TArray<TObjectPtr<UAnimMontage>> Montages;
+};
+
 UENUM(BlueprintType)
 enum class EBossAttackType : uint8
 {
@@ -48,7 +57,7 @@ public:
     TObjectPtr<UAnimMontage> HitReactMontage; //맞았을 때 히트 애니메이션 몽타주
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-    TMap<EBossAttackType, TObjectPtr<UAnimMontage>> AttackMontages; //공격 패턴 몽타주 모음
+    TMap<EBossAttackType, FAttackMontageArray> AttackMontages; //공격 패턴 몽타주 모음
 
     UPROPERTY(EditInstanceOnly, Category = "AI")
     TArray<TObjectPtr<AActor>> PatrolPoints; //패트롤 위치 타겟 포인트를 저장하는 Array
@@ -88,6 +97,26 @@ protected:
     virtual void Tick(float DeltaTime) override;
 
     float DefaultGravityScale;
+
+#pragma region Dynamic Materials
+
+    UPROPERTY()
+    TArray<TObjectPtr<UMaterialInstanceDynamic>> BossDynamicMaterials;
+
+    // 머티리얼 전환 효과를 제어할 변수들
+    bool bIsTransitioningMaterial = false;
+
+    // GlowAmount 파라미터 제어용 변수
+    float CurrentGlowAmount = 32.0f; 
+    float TargetGlowAmount = 32.0f;
+
+    // Enrage 파라미터 제어용 변수
+    float CurrentEnrageValue = 0.3f; 
+    float TargetEnrageValue = 0.3f;
+
+    float MaterialTransitionSpeed = 0.5f; // 전환 속도
+
+#pragma endregion
 
 #pragma region Phase 2 Attributes
     // ===== 2 Phase 관련 속성 =====
