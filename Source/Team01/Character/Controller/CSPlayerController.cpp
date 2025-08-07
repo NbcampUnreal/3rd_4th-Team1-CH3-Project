@@ -69,6 +69,8 @@ void ACSPlayerController::CreateHUD()
 
 			const FString MissionText = ACSGameStateBase::GetMissionText(State, CurrentKillCount);
 			HUDWidget->UpdateMissionStatus(MissionText);
+
+			HUDWidget->UpdateScore(GS->GetScore());
 		}
 		
 		bShowMouseCursor = false;
@@ -238,7 +240,9 @@ void ACSPlayerController::AddKillCount()
 
 	if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
 	{
-		GS->AddKill(); 
+		GS->AddKill();
+
+		GS->AddScore(100);
 	}
 	
 	// 포탈 생성 조건 검사
@@ -255,4 +259,14 @@ void ACSPlayerController::AddKillCount()
 		}
 	}
 
+}
+
+void ACSPlayerController::AddScore(int32 ScoreValue)
+{
+	Score += ScoreValue;
+
+	if (HUDWidget)
+	{
+		HUDWidget->UpdateScore(Score);
+	}
 }

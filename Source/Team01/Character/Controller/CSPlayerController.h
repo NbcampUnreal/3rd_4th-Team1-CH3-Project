@@ -81,12 +81,16 @@ public:
 
 #pragma region KillCount
 
-private:
+protected:
 	UPROPERTY()
 	int32 KillCount = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Score")
+	int32 Score = 0;
 
 public:
 	void AddKillCount();
-
+	void AddScore(int32 ScoreValue);
+	int32 GetScore() const { return Score; }
+	
 #pragma endregion KillCount
 };

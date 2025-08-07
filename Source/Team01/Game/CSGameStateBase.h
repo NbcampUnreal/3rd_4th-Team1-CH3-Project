@@ -21,16 +21,16 @@ class TEAM01_API ACSGameStateBase : public AGameStateBase
 public:
 	UFUNCTION()
 	void AddKill();
-
 	UFUNCTION()
 	void SetMissionState(EMissionState NewState);
-
 	UFUNCTION(BlueprintCallable)
 	int32 GetTotalKillCount() const { return TotalKillCount; }
-
 	UFUNCTION(BlueprintCallable)
 	EMissionState GetCurrentMissionState() const { return CurrentMissionState; }
 
+	UFUNCTION(BlueprintCallable) int32 GetScore() const { return TotalScore; }
+	UFUNCTION() void AddScore(int32 Amount);
+	
 	static FString GetMissionText(EMissionState State, int32 KillCount);
 protected:
 	virtual void BeginPlay() override;
@@ -41,5 +41,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	int32 TotalKillCount = 0;
 
+	UPROPERTY(VisibleAnywhere)
+	int32 TotalScore = 0;
 	
 };

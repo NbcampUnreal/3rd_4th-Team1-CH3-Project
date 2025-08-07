@@ -34,6 +34,8 @@ ACSBossMonster::ACSBossMonster()
 	HPBarComponent->SetDrawSize(FVector2D(200.f, 25.f)); // 보스는 약간 더 큼직하게
 	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 	HPBarComponent->SetVisibility(false);
+
+	ScoreValue = 500;
 }
 
 void ACSBossMonster::BeginPlay()
@@ -464,6 +466,7 @@ void ACSBossMonster::Die()
 			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
 			{
 				PlayerController->AddKillCount();
+				PlayerController->AddScore(ScoreValue);
 				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
 				HUD->ShowKillConfirmMessage(TEXT("Boss Kill!!"));
 			}

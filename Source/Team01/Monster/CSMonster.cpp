@@ -33,6 +33,8 @@ ACSMonster::ACSMonster()
 	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
 	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 	HPBarComponent->SetVisibility(false);
+
+	ScoreValue = 100;
 }
 
 void ACSMonster::BeginPlay()
@@ -122,6 +124,7 @@ void ACSMonster::Die()
 			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
 			{
 				PlayerController->AddKillCount();
+				PlayerController->AddScore(ScoreValue);
 				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
 				HUD->ShowKillConfirmMessage(TEXT("Kill!!"));
 			}

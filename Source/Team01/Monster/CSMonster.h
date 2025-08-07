@@ -62,8 +62,9 @@ protected:
 	AController* LastInstigator = nullptr;
 	
 	FTimerHandle HPHideTimerHandle;
-private:
 
+	
+private:
 	UFUNCTION()
 	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser);

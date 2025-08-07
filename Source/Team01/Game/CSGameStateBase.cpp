@@ -16,7 +16,7 @@ FString ACSGameStateBase::GetMissionText(EMissionState State, int32 KillCount)
 	switch (State)
 	{
 	case EMissionState::KillEnemies:
-		return FString::Printf(TEXT("적을 처치하십시오 (%d / 9)"), KillCount);
+		return FString::Printf(TEXT("적을 처치하십시오 (%d / 15)"), KillCount);
 	case EMissionState::BossFight:
 		return TEXT("보스를 처치하십시오");
 	case EMissionState::MissionClear:
@@ -34,7 +34,7 @@ void ACSGameStateBase::AddKill()
 	{
 		SetMissionState(EMissionState::KillEnemies);
 	}
-	else if (TotalKillCount == 9)
+	else if (TotalKillCount == 14)
 	{
 		SetMissionState(EMissionState::BossFight);
 	}
@@ -48,6 +48,22 @@ void ACSGameStateBase::AddKill()
 				{
 					HUD->UpdateMissionStatus(GetMissionText(CurrentMissionState, TotalKillCount));
 				}
+			}
+		}
+	}
+}
+
+void ACSGameStateBase::AddScore(int32 Amount)
+{
+	TotalScore += Amount;
+	
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (ACSPlayerController* CSController = Cast<ACSPlayerController>(PC))
+		{
+			if (UCS_WBP_HUD* HUD = CSController->GetHUDWidget())
+			{
+				HUD->UpdateScore(TotalScore);
 			}
 		}
 	}

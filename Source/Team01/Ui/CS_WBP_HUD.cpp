@@ -115,10 +115,7 @@ void UCS_WBP_HUD::UpdateScore(int32 ScoreValue)
 {
 	if (Score)
 	{
-		Score->SetText(FText::Format(
-			NSLOCTEXT("HUD", "Score", "Score: {0}"),
-			FText::AsNumber(ScoreValue)
-		));
+		Score->SetText(FText::FromString(FString::Printf(TEXT("Score: %d"), ScoreValue)));
 	}
 }
 

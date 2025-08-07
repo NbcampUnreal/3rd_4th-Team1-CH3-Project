@@ -100,5 +100,18 @@ protected:
 	//uint8 bIsDead : 1;
 	
 #pragma endregion
+
+#pragma region score
 	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Score")
+	int32 ScoreValue = 100;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	int32 GetScoreValue() const { return ScoreValue; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetScoreValue(int32 NewScore) { ScoreValue = NewScore; }
+#pragma endregion score
 };
