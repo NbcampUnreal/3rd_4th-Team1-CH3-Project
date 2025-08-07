@@ -23,8 +23,23 @@ public:
 
 	float MaxHP;
 
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly)
+	float AttackRange;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly)
+	float SightRange;
+
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsAttack;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsHit;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsDetectedPlayer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
@@ -37,6 +52,11 @@ public:
 
 	UPROPERTY()
 	APawn* PlayerPawn;
+
+	void BeginAttack();
+
+	UFUNCTION()
+	void EndAttack();
 
 
 };

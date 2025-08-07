@@ -9,4 +9,9 @@ class TEAM01_API UCSRogueMonsterBTService : public UBTService
 {
 	GENERATED_BODY()
 	
+public:
+	UCSRogueMonsterBTService();
+
+protected:
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 };
