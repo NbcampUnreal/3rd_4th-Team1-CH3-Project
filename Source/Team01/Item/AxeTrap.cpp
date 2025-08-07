@@ -38,7 +38,7 @@ void AAxeTrap::Tick(float DeltaTime)
 
 	RunningTime += DeltaTime;
 	float SwingAngle = FMath::Sin(RunningTime * 2.f) * 45.f;
-	FRotator NewRotation = InitialRotation + FRotator(0.f, SwingAngle, 0.f); // Yaw 기준 회전
+	FRotator NewRotation = InitialRotation + FRotator(SwingAngle, 0.f, 0.f); // Yaw 기준 회전
 	AxeMesh->SetRelativeRotation(NewRotation);
 
 }
