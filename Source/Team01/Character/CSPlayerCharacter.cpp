@@ -865,7 +865,7 @@ void ACSPlayerCharacter::OnUltCastReleased(const FInputActionValue& InValue)
 
 void ACSPlayerCharacter::FireUltEffect()
 {
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 280.f + GetActorRightVector() * 70.f;
+	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 280.f + GetActorRightVector() * 70.f + GetActorUpVector() * 40.f;
 	FRotator SpawnRotation = GetActorRotation();
 
 	UCSPlayerAnimInstance* AnimInstance =
