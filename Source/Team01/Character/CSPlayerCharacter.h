@@ -13,6 +13,8 @@ class UAnimMontage;
 class UParticleSystem;
 class UParticleSystemComponent;
 
+class ACSGrenade;
+
 UENUM(BlueprintType)
 enum class EUltCastState : uint8
 {
@@ -271,6 +273,34 @@ private:
 
 	void StartCastingEffect();
 	void StopCastingEffect();
+	
+#pragma endregion
+
+#pragma region Grenade
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grenade")
+	int32 GrenadeCount;
+
+	UFUNCTION(blueprintcallable, Category = "Grenade")
+	bool AddGrenade(int32 Amount);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
+	TSubclassOf<ACSGrenade> GrenadeClass;
+
+	UFUNCTION()
+	void GrabGrenade(const FInputActionValue& InValue);
+	UFUNCTION()
+	void ThrowGrenade(const FInputActionValue& InValue);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grenade")
+	ACSGrenade* CurrentHeldGrenade;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimMontage* GrabGrenadeMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimMontage* ThrowGrenadeMontage;
 	
 #pragma endregion
 

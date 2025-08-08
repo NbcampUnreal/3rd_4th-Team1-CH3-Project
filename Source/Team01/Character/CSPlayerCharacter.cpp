@@ -16,12 +16,14 @@
 #include "../Character/Controller/CSPlayerController.h"
 #include "../Ui/CS_WBP_HUD.h"
 #include "Animation/CSUltProjectile.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Materials/MaterialExpressionBlendMaterialAttributes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "Weapon/CSGrenade.h"
 
 
 ACSPlayerCharacter::ACSPlayerCharacter()
@@ -248,6 +250,20 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			ETriggerEvent::Completed,
 			this,
 			&ThisClass::OnUltCastReleased
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Grenade,
+			ETriggerEvent::Triggered,
+			this,
+			&ThisClass::GrabGrenade
+		);
+
+		EnhancedInputComponent->BindAction(
+			PlayerCharacterInputConfig->Grenade,
+			ETriggerEvent::Completed,
+			this,
+			&ThisClass::ThrowGrenade
 		);
 	}
 }
@@ -943,6 +959,107 @@ void ACSPlayerCharacter::StopCastingEffect()
 		UltCastParticleEffectComponent->DeactivateSystem();
 		UltCastParticleEffectComponent = nullptr;
 	}
+}
+
+bool ACSPlayerCharacter::AddGrenade(int32 Amount)
+{
+	if (Amount <= 0)
+	{
+		return false;
+	}
+
+	int32 FormerGrenadeCount = GrenadeCount;
+	GrenadeCount += Amount;
+
+	if (GrenadeCount > FormerGrenadeCount)
+	{
+		return true;
+	}
+	return false;
+}
+
+void ACSPlayerCharacter::GrabGrenade(const FInputActionValue& InValue)
+{
+	if (IsValid(CurrentHeldGrenade) || GrenadeCount <= 0 || !IsValid(GrenadeClass))
+	{
+		return;
+	}
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+
+	FVector SpawnLocation = GetActorLocation();
+	FRotator SpawnRotation = GetActorRotation();
+
+	CurrentHeldGrenade = GetWorld()->SpawnActor<ACSGrenade>(GrenadeClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+	if (IsValid(CurrentHeldGrenade))
+	{
+		if (IsValid(GetMesh()))
+		{
+			CurrentHeldGrenade->AttachToComponent(
+				GetMesh(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				TEXT("hand_r_ability_socket")
+			);
+		}
+
+		if (IsValid(CurrentHeldGrenade->ProjectileMovement))
+		{
+			// 바로 날아가지 않도록 수류탄 이동 비활성화
+			CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(FVector::ZeroVector);
+			CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(nullptr);
+			CurrentHeldGrenade->ProjectileMovement->Deactivate();
+		}
+		if (IsValid(CurrentHeldGrenade->Collision))
+		{
+			CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Overlap);
+		}
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (IsValid(AnimInstance) && IsValid(GrabGrenadeMontage))
+		{
+			AnimInstance->Montage_Play(GrabGrenadeMontage);
+		}
+		GrenadeCount--;
+	}
+}
+
+void ACSPlayerCharacter::ThrowGrenade(const FInputActionValue& InValue)
+{
+	if (!IsValid(CurrentHeldGrenade))
+	{
+		return;
+	}
+
+	CurrentHeldGrenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+	if (IsValid(CurrentHeldGrenade->ProjectileMovement))
+	{
+		CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(CurrentHeldGrenade->Collision);
+		CurrentHeldGrenade->ProjectileMovement->Activate();
+
+		FRotator ThrowRotation = GetControlRotation();	// 카메라 방향
+		FVector LaunchVelocity = ThrowRotation.Vector() * CurrentHeldGrenade->ProjectileMovement->InitialSpeed;
+		CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(LaunchVelocity);
+
+		if (IsValid(CurrentHeldGrenade->Collision))
+		{
+			CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Block);
+		}
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) && IsValid(ThrowGrenadeMontage))
+	{
+		AnimInstance->Montage_Play(ThrowGrenadeMontage);
+	}
+
+	CurrentHeldGrenade->Throw();
+	CurrentHeldGrenade = nullptr;
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()
