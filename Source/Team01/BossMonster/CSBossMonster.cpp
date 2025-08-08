@@ -20,7 +20,7 @@
 
 ACSBossMonster::ACSBossMonster()
 {
-	MaxHP = 200.0f;
+	MaxHP = 300.0f;
 	CurrentHP = MaxHP;
 	AttackDamage = 20.0f;
 	bIsInPhase2 = false;
@@ -68,7 +68,10 @@ void ACSBossMonster::BeginPlay()
 			BossDynamicMaterials.Add(DynamicMaterial);
 		}
 	}
-	
+
+	OriginalWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ACSBossMonster::OnHit);
 }
 
 void ACSBossMonster::Tick(float DeltaTime)
@@ -119,6 +122,15 @@ void ACSBossMonster::Tick(float DeltaTime)
 			bIsTransitioningMaterial = false; // 불필요한 연산을 막기 위해 전환 상태를 종료
 		}
 	}
+
+	if (GetCurrentState() == ECharacterState::Charging)
+	{
+		// 설정된 방향(ChargeDirection)으로 계속 전진합니다.
+		AddMovementInput(ChargeDirection, 1.0f);
+		// 캐릭터 이동 속도를 돌격 속도로 강제 설정합니다.
+		GetCharacterMovement()->MaxWalkSpeed = ChargeSpeed;
+	}
+
 
 }
 
@@ -211,6 +223,64 @@ void ACSBossMonster::EndAttack(UAnimMontage* InMontage, bool bInterrupted)
 		SetCurrentState(ECharacterState::Idle); // 상태를 Idle로 변경
 		TryStateTransition(); // 여기서 2페이즈 전환 요청이 있었는지 체크
 	}
+}
+
+void ACSBossMonster::BeginChargeAttack()
+{
+	// Idle 상태가 아닐 땐 공격을 시작하지 못하게 막습니다.
+	if (GetCurrentState() != ECharacterState::Idle) return;
+
+	DamagedActorsInCharge.Empty();
+
+	// 1. 공격 상태로 전환하고 변수 초기화
+	SetCurrentState(ECharacterState::Charging);
+
+	// 2. 플레이어 방향으로 초기 돌격 방향 설정
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (PlayerPawn)
+	{
+		ChargeDirection = (PlayerPawn->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		ChargeDirection.Z = 0; // 수평으로만 움직이도록 Z값 제거
+	}
+
+	// 3. ⭐ AI 두뇌(BT)를 잠시 멈춰서 다른 행동을 못하게 막습니다.
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController && AIController->GetBrainComponent())
+	{
+		AIController->GetBrainComponent()->PauseLogic(TEXT("Start Charging Attack"));
+	}
+
+	// 4. 구르기 애니메이션 몽타주 재생
+	const FAttackMontageArray* MontageStruct = AttackMontages.Find(EBossAttackType::RollAndCharge);
+	if (MontageStruct && MontageStruct->Montages.Num() > 0)
+	{
+		if (UAnimMontage* ChargeMontage = MontageStruct->Montages[0])
+		{
+			GetMesh()->GetAnimInstance()->Montage_Play(ChargeMontage);
+		}
+	}
+
+	// 5. 돌격하는 동안에는 캐릭터가 자동으로 방향을 바꾸지 않도록 합니다.
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	SetActorRotation(ChargeDirection.Rotation()); // 초기 방향으로 몸을 돌려줍니다.
+}
+
+void ACSBossMonster::EndChargeAttack()
+{
+	// 1. 상태를 다시 평시(Idle)로 되돌립니다.
+	SetCurrentState(ECharacterState::Idle);
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.2f); // 모든 애니메이션 중지
+
+	// 2. ⭐ 멈췄던 AI 두뇌(BT)를 다시 깨웁니다.
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController && AIController->GetBrainComponent())
+	{
+		AIController->GetBrainComponent()->ResumeLogic(TEXT("End Charging Attack"));
+	}
+
+	// 3. 캐릭터 이동 설정을 원래대로 되돌립니다.
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->MaxWalkSpeed = OriginalWalkSpeed;
 }
 
 void ACSBossMonster::ApplyMeleeDamage()
@@ -316,33 +386,33 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	LastInstigator = EventInstigator;
-	
+
 	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
 	{
 		CurrentHP -= FinalDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
 		ShowFloatingDamage(FMath::RoundToInt(FinalDamage));
-		
+
 		if (HPBarComponent)
 		{
 			HPBarComponent->SetVisibility(true);
-			
+
 			GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
 			GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
-			{
-				if (HPBarComponent && GetCurrentState() != ECharacterState::Dead)
 				{
-					HPBarComponent->SetVisibility(false);
-				}
-			}, 3.0f, false);
+					if (HPBarComponent && GetCurrentState() != ECharacterState::Dead)
+					{
+						HPBarComponent->SetVisibility(false);
+					}
+				}, 3.0f, false);
 		}
-		
+
 		if (HPBar)
 		{
 			HPBar->UpdateHP(CurrentHP / MaxHP);
 		}
-		
+
 		if (!bIsInPhase2 && (CurrentHP / MaxHP <= 0.5f))
 		{
 			bIsPhaseTransitionPending = true; // 2페이즈 진입 플래그
@@ -476,12 +546,12 @@ void ACSBossMonster::Die()
 			}
 		}
 	}
-	
+
 	if (ACSGameStateBase* GS = GetWorld()->GetGameState<ACSGameStateBase>())
 	{
 		GS->SetMissionState(EMissionState::MissionClear);
 	}
-	
+
 	GetWorld()->GetTimerManager().SetTimer(
 		DeathTimerHandle,
 		this,
@@ -511,4 +581,41 @@ void ACSBossMonster::GoRagdoll()
 void ACSBossMonster::Disappear()
 {
 	Destroy();
+}
+
+void ACSBossMonster::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// 돌격 상태가 아니거나, 부딪힌 대상이 유효하지 않거나, 자기 자신이면 무시합니다.
+	if (GetCurrentState() != ECharacterState::Charging || !OtherActor || OtherActor == this)
+	{
+		return;
+	}
+
+	// 1. 플레이어와 부딪혔는지 먼저 확인합니다.
+	if (OtherActor->IsA(ACSPlayerCharacter::StaticClass()))
+	{
+		// 이번 돌진에서 아직 데미지를 주지 않은 플레이어인지 확인합니다.
+		if (!DamagedActorsInCharge.Contains(OtherActor))
+		{
+			// 데미지를 적용합니다.
+			UGameplayStatics::ApplyDamage(
+				OtherActor,
+				GetAttackDamage(),
+				GetController(),
+				this,
+				nullptr
+			);
+
+			// "이미 공격한 대상" 목록에 플레이어를 추가하여 중복 데미지를 방지합니다.
+			DamagedActorsInCharge.Add(OtherActor);
+		}
+		// 플레이어와 부딪혔을 때는 아무것도 하지 않고 그냥 '통과'합니다.
+		// 공격은 멈추지 않고 계속됩니다.
+	}
+	// 2. 부딪힌 대상이 '플레이어가 아닌 경우' (벽, 장애물 등)
+	else
+	{
+		// ⭐ 즉시 돌진 공격을 종료합니다.
+		EndChargeAttack();
+	}
 }

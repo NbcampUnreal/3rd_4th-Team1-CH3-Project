@@ -167,7 +167,7 @@ protected:
 #pragma endregion
 
     FVector ChargeDirection;         // 현재 돌격하고 있는 방향
-    float ChargeSpeed = 2500.0f;     // 돌격 속도
+    float ChargeSpeed = 3500.0f;     // 돌격 속도
     TArray<AActor*> DamagedActorsInCharge;
 
 };
