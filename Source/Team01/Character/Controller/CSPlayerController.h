@@ -36,11 +36,14 @@ private:
 	UPROPERTY()
 	TObjectPtr<UCS_WBP_HUD> HUDWidget;
 	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> MouseWidget;
+	
 	UUserWidget* GameClearUIWidget;
 	
 #pragma endregion HUD
 
-#pragma region MainMenu
+#pragma region Menu
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -57,6 +60,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Menu")
 	TObjectPtr<UUserWidget> MainMenuWidget;
+
+	UFUNCTION(BlueprintCallable)
+	void ShowMouseMenu();
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> MouseWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> OptionWidgetClass;
@@ -81,7 +90,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	USoundBase* SpawnSound;
 
-#pragma endregion MainMenu
+#pragma endregion Menu
 
 #pragma region KillCount
 

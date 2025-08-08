@@ -198,6 +198,46 @@ void ACSPlayerController::ShowOptionMenu()
 	}
 }
 
+void ACSPlayerController::ShowMouseMenu()
+{
+	if (MouseWidgetClass)
+	{
+		// 기존 메뉴 제거
+		if (OptionWidget)
+		{
+			OptionWidget->RemoveFromParent();
+			OptionWidget = nullptr;
+		}
+
+		if (MainMenuWidget)
+		{
+			MainMenuWidget->RemoveFromParent();
+			MainMenuWidget = nullptr;
+		}
+
+		if (MouseWidget)
+		{
+			MouseWidget->RemoveFromParent();
+			MouseWidget = nullptr;
+		}
+
+		// 새로운 마우스 메뉴 생성
+		MouseWidget = CreateWidget<UUserWidget>(this, MouseWidgetClass);
+		if (MouseWidget)
+		{
+			MouseWidget->AddToViewport();
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(MouseWidget->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
+
+			UE_LOG(LogTemp, Warning, TEXT("MouseMenu 생성 완료"));
+		}
+	}
+}
+
 void ACSPlayerController::ToggleGameOverTitleVisibility()
 {
 	if (MainMenuWidget)
