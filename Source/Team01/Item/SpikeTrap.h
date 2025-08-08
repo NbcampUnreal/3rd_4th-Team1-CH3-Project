@@ -75,4 +75,7 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	UPROPERTY()
+	TSet<AActor*> RecentlyDamagedActors;
+
 };

@@ -12,13 +12,13 @@ ACSDagger::ACSDagger()
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 2500.f;
+	ProjectileMovement->MaxSpeed = 2500.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 
 	InitialLifeSpan = 1.0f;
 
-	Damage = 30.0f;
+	Damage = 20.0f;
 }
 
 void ACSDagger::BeginPlay()

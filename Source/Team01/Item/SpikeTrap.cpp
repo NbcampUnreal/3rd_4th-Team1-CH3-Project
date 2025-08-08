@@ -118,7 +118,9 @@ void ASpikeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ACSRogueMonster* Monster = Cast<ACSRogueMonster>(OtherActor);
-	if (!Monster) return;
+	if (!Monster || Monster->bIsDead) return;
+
+	if (RecentlyDamagedActors.Contains(Monster)) return;
 
 	Monster->bIsOverlap = true;
 
@@ -127,7 +129,7 @@ void ASpikeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		Monster->OverlapResetTimerHandle,
 		Monster,
 		&ACSRogueMonster::ResetOverlap,
-		2.0f,
+		3.0f,
 		false
 	);
 
@@ -141,4 +143,10 @@ void ASpikeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 			PathComp->AbortMove(*this, FPathFollowingResultFlags::ForcedScript);
 		}
 	}
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this, Monster]()
+		{
+			RecentlyDamagedActors.Remove(Monster);
+		}, 5.0f, false);
 }

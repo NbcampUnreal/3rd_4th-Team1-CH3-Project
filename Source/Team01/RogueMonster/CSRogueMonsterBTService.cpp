@@ -53,10 +53,6 @@ void UCSRogueMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	{
 		Monster->GetCharacterMovement()->MaxWalkSpeed = Monster->ChaseSpeed;
 	}
-	else if (bDetectedPlayer)
-	{
-		Monster->GetCharacterMovement()->MaxWalkSpeed = Monster->ChaseSpeed;
-	}
 	else
 	{
 		Monster->GetCharacterMovement()->MaxWalkSpeed = Monster->PatrolSpeed;

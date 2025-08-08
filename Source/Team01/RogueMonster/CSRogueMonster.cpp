@@ -8,6 +8,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/CapsuleComponent.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "../Ui/CS_WBP_HUD.h"
 #include "../Character/Controller/CSPlayerController.h"
@@ -27,9 +28,9 @@ ACSRogueMonster::ACSRogueMonster()
 	bIsDetectedPlayer = false;
 	bIsOverlap = false;
 
-	MaxHP = 150.0f;
+	MaxHP = FMath::Max(0.0f, 100.0f);
 	CurrentHP = MaxHP;
-	HitDamage = 20.0f;
+	HitDamage = 10.0f;
 	RangedHitDamage = 30.0f;
 
 	PatrolSpeed = 200.0f;
@@ -37,8 +38,8 @@ ACSRogueMonster::ACSRogueMonster()
 	ChaseSpeed = 600.0f;
 
 	SightRange = 1200.0f;
-	AttackRange = 300.0f;
-	RangedAttackRange = 1000.0;
+	AttackRange = 250.0f;
+	RangedAttackRange = 1200.0f;
 
 	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
 	HPBarComponent->SetupAttachment(RootComponent);
@@ -153,11 +154,12 @@ void ACSRogueMonster::EndAttack()
 float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (!bIsOverlap)
-	{
 		return 0.f;
-	}
 
-	CurrentHP -= DamageAmount;
+	if (bIsDead)
+		return 0.f;
+
+	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.0f, MaxHP);
 
 	ShowFloatingDamage(FMath::RoundToInt(DamageAmount));
 	
@@ -182,9 +184,15 @@ float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 	
 	LastInstigator = EventInstigator;
 	
-	if (CurrentHP <= 0.f)
+	if (CurrentHP <= KINDA_SMALL_NUMBER)
 	{
-		Die();
+		CurrentHP = 0.f;
+
+		if (!bIsDead)
+		{
+			Die();
+		}
+
 	}
 
 	return DamageAmount;
@@ -192,7 +200,11 @@ float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 
 void ACSRogueMonster::Die()
 {
+	if (bIsDead) return;
+
 	bIsDead = true;
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (AAIController* AICon = Cast<AAIController>(GetController()))
 	{
