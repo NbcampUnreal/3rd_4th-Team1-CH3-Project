@@ -27,8 +27,9 @@ ACSRogueMonster::ACSRogueMonster()
 	bIsHit = false;
 	bIsDetectedPlayer = false;
 	bIsOverlap = false;
+	bHasThrown = false;
 
-	MaxHP = FMath::Max(0.0f, 100.0f);
+	MaxHP = FMath::Max(0.0f, 50.0f);
 	CurrentHP = MaxHP;
 	HitDamage = 10.0f;
 	RangedHitDamage = 30.0f;
@@ -109,6 +110,8 @@ void ACSRogueMonster::ApplyAttackDamage()
 
 	if (Distance > AttackRange) return;
 
+	bHasThrown = false;
+
 	UGameplayStatics::ApplyDamage(
 		PlayerPawn,
 		HitDamage,
@@ -123,6 +126,7 @@ void ACSRogueMonster::BeginRangeAttack()
 	if (bIsDead || bIsAttack || bIsRangeAttack) return;
 
 	bIsRangeAttack = true;
+	bHasThrown = true;
 
 	LookAtPlayer();
 
@@ -153,10 +157,10 @@ void ACSRogueMonster::EndAttack()
 
 float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (!bIsOverlap)
+	if (!EventInstigator || !EventInstigator->IsPlayerController())
 		return 0.f;
 
-	if (bIsDead)
+	if (!bIsOverlap || bIsDead)
 		return 0.f;
 
 	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.0f, MaxHP);

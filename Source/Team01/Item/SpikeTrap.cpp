@@ -148,5 +148,5 @@ void ASpikeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
 	GetWorldTimerManager().SetTimer(TimerHandle, [this, Monster]()
 		{
 			RecentlyDamagedActors.Remove(Monster);
-		}, 5.0f, false);
+		}, 6.0f, false);
 }

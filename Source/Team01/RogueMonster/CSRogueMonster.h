@@ -64,6 +64,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDetectedPlayer;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Combat")
+	bool bHasThrown;
+
 	UPROPERTY(EditInstanceOnly, Category="UI")
 	bool bAlwaysShowHPBar = false;
 

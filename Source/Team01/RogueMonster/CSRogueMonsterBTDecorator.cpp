@@ -36,7 +36,7 @@ bool UCSRogueMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeCompone
 	
 
 	case ERogueAIConditionType::IsRangeAttacking:
-		return !bIsAttackRange && bInRangedAttackRange;
+		return !bIsAttackRange && bInRangedAttackRange && !Monster->bHasThrown;
 
 	case ERogueAIConditionType::IsHit:
 		return Monster->bIsHit;
