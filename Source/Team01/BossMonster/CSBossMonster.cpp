@@ -389,6 +389,21 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
 	{
+		// 1. 데미지를 준 대상이 '플레이어'인지 확인합니다.
+		if (DamageCauser && DamageCauser->IsA(ACSPlayerCharacter::StaticClass()))
+		{
+			// 2. AI 컨트롤러와 블랙보드를 가져옵니다.
+			if (AAIController* AICon = Cast<AAIController>(GetController()))
+			{
+				if (UBlackboardComponent* BlackboardComp = AICon->GetBlackboardComponent())
+				{
+					// 3. 블랙보드의 bHasBeenAlerted 키를 true로 강제로 바꿔버립니다.
+					BlackboardComp->SetValueAsBool(TEXT("bHasBeenAlerted"), true);
+					UE_LOG(LogTemp, Warning, TEXT("Boss has been alerted by taking damage!"));
+				}
+			}
+		}
+
 		CurrentHP -= FinalDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
@@ -615,7 +630,45 @@ void ACSBossMonster::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 	// 2. 부딪힌 대상이 '플레이어가 아닌 경우' (벽, 장애물 등)
 	else
 	{
-		// ⭐ 즉시 돌진 공격을 종료합니다.
-		EndChargeAttack();
+		GetCharacterMovement()->StopMovementImmediately();
+
+		//충돌 지점의 법선(Normal) 벡터를 이용해 벽이 밀어내는 방향을 구합
+		FVector StepBackDirection = Hit.ImpactNormal;
+
+		//원하는 거리만큼 캐릭터를 강제로 뒤로 이동시킵니다.
+		float StepBackDistance = 50.0f; // 50cm 정도 뒤로 물러나게 설정
+		AddActorWorldOffset(StepBackDirection * StepBackDistance, true);
+
+		BeginStun();
 	}
+}
+
+void ACSBossMonster::BeginStun()
+{
+	// 상태를 '스턴'으로 변경
+	SetCurrentState(ECharacterState::Stunned);
+	// 돌진 애니메이션을 멈춥니다.
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.1f);
+
+	// 벽 충돌 사운드를 재생합니다.
+	if (WallHitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, WallHitSound, GetActorLocation());
+	}
+
+	// 3. 스턴 애니메이션을 재생하고, 길이를 가져옵니다.
+	float StunDuration = 1.5f; // 기본 스턴 시간 
+	if (StunMontage)
+	{
+		StunDuration = GetMesh()->GetAnimInstance()->Montage_Play(StunMontage);
+	}
+
+	// 4. ⭐ 스턴 애니메이션이 끝나는 시간에 맞춰 EndChargeAttack() 함수를 호출하도록 타이머를 설정합니다.
+	GetWorld()->GetTimerManager().SetTimer(
+		StunEndTimerHandle,     // 타이머 핸들
+		this,                   // 타이머를 소유할 액터
+		&ACSBossMonster::EndChargeAttack, // 시간이 다 되면 호출할 함수
+		StunDuration,           // 지연 시간 (스턴 애니메이션 길이)
+		false                   // 반복하지 않음
+	);
 }

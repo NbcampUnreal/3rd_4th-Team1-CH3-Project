@@ -11,6 +11,7 @@ enum class ECharacterState : uint8
 	Idle,
 	Attacking,
 	Charging,
+	Stunned,
 	HitReaction,
 	Shouting,
 	PhaseTransition,

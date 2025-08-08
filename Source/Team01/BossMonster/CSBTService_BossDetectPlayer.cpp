@@ -29,8 +29,7 @@ UCSBTService_BossDetectPlayer::UCSBTService_BossDetectPlayer()
 
 void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-
-	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+    Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
     APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
     if (ControllingPawn == nullptr) return;
@@ -55,17 +54,29 @@ void UCSBTService_BossDetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, 
 
     const float DistanceToPlayer = ControllingPawn->GetDistanceTo(TargetPlayer);
 
-    // 핵심 로직: 인식 범위 안에 있을 때와 아닐 때를 구분함
-    if (DistanceToPlayer <= DetectRange)
+    // 블랙보드에서 "플레이어를 본 적 있는가?" 값을 가져옵니다.
+    bool bHasBeenAlerted = BlackboardComp->GetValueAsBool(TEXT("bHasBeenAlerted"));
+
+    // 아직 플레이어를 본 적이 없고(false), 현재 인식 범위 안에 들어왔다면
+    if (!bHasBeenAlerted && DistanceToPlayer <= DetectRange)
     {
-        // [범위 안] 플레이어를 타겟으로 설정하고, 공격 범위 여부를 업데이트
+        // "이제 플레이어를 봤다!" 라고 블랙보드에 영구적으로 기록
+        bHasBeenAlerted = true;
+        BlackboardComp->SetValueAsBool(TEXT("bHasBeenAlerted"), true);
+    }
+
+    // 플레이어를 한 번이라도 본 적이 있다면(true)
+    if (bHasBeenAlerted)
+    {
+        // 인식 범위를 벗어나더라도 계속 플레이어를 타겟으로 설정합니다.
         BlackboardComp->SetValueAsObject(TEXT("TargetPlayer"), TargetPlayer);
         BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), DistanceToPlayer <= AttackRange);
         BlackboardComp->SetValueAsBool(TEXT("IsInJumpAttackRange"), DistanceToPlayer <= JumpAttackRange);
     }
+    // 단 한 번도 플레이어를 본 적이 없다면 (최초 순찰 상태)
     else
     {
-        // [범위 밖] 플레이어를 잊어버리고(타겟을 비움), 공격 범위도 false로 설정
+        // 타겟을 비우고, 공격 범위도 모두 false로 설정합니다.
         BlackboardComp->ClearValue(TEXT("TargetPlayer"));
         BlackboardComp->SetValueAsBool(TEXT("IsInAttackRange"), false);
         BlackboardComp->SetValueAsBool(TEXT("IsInJumpAttackRange"), false);

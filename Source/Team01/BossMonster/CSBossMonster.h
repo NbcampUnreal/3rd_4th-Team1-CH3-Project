@@ -38,6 +38,8 @@ public:
 
     void EndChargeAttack();
 
+    void BeginStun();
+
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
     void Die(); //죽었을 때 처리될 함수
@@ -108,6 +110,13 @@ protected:
 
     float DefaultGravityScale;
 
+    // 스턴 애니메이션 몽타주와 벽 충돌 사운드를 에디터에서 설정할 수 있도록 변수 추가
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> StunMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+    TObjectPtr<USoundBase> WallHitSound;
+
 #pragma region Dynamic Materials
 
     UPROPERTY()
@@ -166,8 +175,12 @@ protected:
 	AController* LastInstigator = nullptr;
 #pragma endregion
 
+
+private:
+
     FVector ChargeDirection;         // 현재 돌격하고 있는 방향
-    float ChargeSpeed = 3500.0f;     // 돌격 속도
+    float ChargeSpeed = 5000.0f;     // 돌격 속도
     TArray<AActor*> DamagedActorsInCharge;
 
+    FTimerHandle StunEndTimerHandle; // 스턴 상태가 끝나는 것을 관리할 타이머 핸들
 };
