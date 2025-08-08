@@ -5,6 +5,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 
 // Sets default values
@@ -22,12 +23,14 @@ ACSUltProjectile::ACSUltProjectile()
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComponent;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 5000.f;
+	ProjectileMovement->MaxSpeed = 5000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
 
 	Damage = 50.f;
+	ProjectileLifeSpan = 5.f;
+	InitialLifeSpan = ProjectileLifeSpan;
 }
 
 // Called when the game starts or when spawned
@@ -53,6 +56,23 @@ void ACSUltProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 		UGameplayStatics::ApplyDamage(OtherActor, Damage, GetInstigatorController(), this, nullptr);
 
 		// 파티클, 사운드 등 이펙트
+		if (IsValid(ProjectileHitEffect))
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ProjectileHitEffect,
+			GetActorLocation(),
+			GetActorRotation()
+			);
+		}
+		if (IsValid(ProjectileHitSound))
+		{
+			UGameplayStatics::PlaySoundAtLocation(
+				GetWorld(),
+				ProjectileHitSound,
+				GetActorLocation()
+			);
+		}
 
 		// 투사체 제거
 		Destroy();

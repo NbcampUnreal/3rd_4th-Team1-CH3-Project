@@ -34,6 +34,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 	float Damage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float ProjectileLifeSpan;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystem* ProjectileHitEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	USoundWave* ProjectileHitSound;
+
+public:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
