@@ -20,9 +20,9 @@
 
 ACSBossMonster::ACSBossMonster()
 {
-	MaxHP = 300.0f;
+	MaxHP = 400.0f;
 	CurrentHP = MaxHP;
-	AttackDamage = 20.0f;
+	AttackDamage = 15.0f;
 	bIsInPhase2 = false;
 	bIsPhaseTransitionPending = false;
 

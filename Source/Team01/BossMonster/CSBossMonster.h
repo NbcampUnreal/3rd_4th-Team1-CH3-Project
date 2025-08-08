@@ -73,7 +73,7 @@ public:
     // ===== Ground Slam Attack 관련 속성 =====
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
-    float GroundSlamDamage = 50.0f; // 공격력
+    float GroundSlamDamage = 40.0f; // 공격력
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack|GroundSlam")
     float GroundSlamRadius = 500.0f; // 공격 반경 (5미터)
@@ -179,7 +179,7 @@ protected:
 private:
 
     FVector ChargeDirection;         // 현재 돌격하고 있는 방향
-    float ChargeSpeed = 5000.0f;     // 돌격 속도
+    float ChargeSpeed = 7000.0f;     // 돌격 속도
     TArray<AActor*> DamagedActorsInCharge;
 
     FTimerHandle StunEndTimerHandle; // 스턴 상태가 끝나는 것을 관리할 타이머 핸들
