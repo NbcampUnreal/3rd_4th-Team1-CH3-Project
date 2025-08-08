@@ -18,7 +18,8 @@ UENUM(BlueprintType)
 enum class EBossAttackType : uint8
 {
     Melee,      // 일반 근접 공격
-    GroundSlam  // 새로 추가할 점프 후 바닥 찍기 공격
+    GroundSlam,  // 새로 추가할 점프 후 바닥 찍기 공격
+    RollAndCharge
 };
 
 UCLASS()
@@ -32,6 +33,10 @@ public:
     void BeginAttackPattern(EBossAttackType AttackType);
 
     virtual void EndAttack(UAnimMontage* InMontage, bool bInterrupted) override;
+
+    void BeginChargeAttack();
+
+    void EndChargeAttack();
 
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -96,6 +101,11 @@ protected:
 
     virtual void Tick(float DeltaTime) override;
 
+    UFUNCTION()
+    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+    float OriginalWalkSpeed; //원래 이동속도
+
     float DefaultGravityScale;
 
 #pragma region Dynamic Materials
@@ -155,4 +165,9 @@ protected:
 	UPROPERTY()
 	AController* LastInstigator = nullptr;
 #pragma endregion
+
+    FVector ChargeDirection;         // 현재 돌격하고 있는 방향
+    float ChargeSpeed = 2500.0f;     // 돌격 속도
+    TArray<AActor*> DamagedActorsInCharge;
+
 };
