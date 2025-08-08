@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "../Ui/CS_WBP_EnemyHPBar.h"
+#include "Components/WidgetComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "CSRogueMonster.generated.h"
 
@@ -62,6 +64,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDetectedPlayer;
 
+	UPROPERTY(EditInstanceOnly, Category="UI")
+	bool bAlwaysShowHPBar = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol Point")
 	TArray<TObjectPtr<AActor>> PatrolPoints;
 
@@ -97,4 +102,25 @@ public:
 	void ResetOverlap();
 
 	FTimerHandle OverlapResetTimerHandle;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category="UI")
+	UWidgetComponent* HPBarComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
+	TSubclassOf<UUserWidget> FloatingDamageWidgetClass; 
+	
+	UPROPERTY()
+	UCS_WBP_EnemyHPBar* HPBar = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Score")
+	int32 ScoreValue = 100;
+	UPROPERTY() 
+	AController* LastInstigator = nullptr; 
+
+	
+	FTimerHandle HPHideTimerHandle;
+
+	// 플로팅 데미지 유틸 (간단 구현)
+	void ShowFloatingDamage(int32 Value);
 };

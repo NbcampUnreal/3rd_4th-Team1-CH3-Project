@@ -7,6 +7,9 @@
 #include "Perception/PawnSensingComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "AIController.h"
+#include "Kismet/GameplayStatics.h"
+#include "../UI/CS_WBP_EnemyHPBar.h"
+#include "../Ui/CS_WBP_HUD.h"
 #include "../Character/Controller/CSPlayerController.h"
 #include "CSDagger.h"
 
@@ -37,6 +40,15 @@ ACSRogueMonster::ACSRogueMonster()
 	AttackRange = 300.0f;
 	RangedAttackRange = 1000.0;
 
+	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
+	HPBarComponent->SetupAttachment(RootComponent);
+	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
+	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	bAlwaysShowHPBar = true;
+
+	ScoreValue = 100;
+
 }
 
 void ACSRogueMonster::BeginPlay()
@@ -44,6 +56,21 @@ void ACSRogueMonster::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(bAlwaysShowHPBar);
+
+		if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
+		{
+			HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+			if (HPBar)
+			{
+				const float Ratio = FMath::Clamp(CurrentHP / MaxHP, 0.f, 1.f);
+				HPBar->SetHP(CurrentHP, MaxHP);
+			}
+		}
+	}
 }
 
 void ACSRogueMonster::LookAtPlayer()
@@ -132,6 +159,29 @@ float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 
 	CurrentHP -= DamageAmount;
 
+	ShowFloatingDamage(FMath::RoundToInt(DamageAmount));
+	
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(true);
+		
+		GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+		{
+			if (HPBarComponent)
+			{
+				HPBarComponent->SetVisibility(false);
+			}
+		}, 3.0f, false);
+	}
+	
+	if (HPBar)
+	{
+		HPBar->SetHP(CurrentHP, MaxHP);
+	}
+	
+	LastInstigator = EventInstigator;
+	
 	if (CurrentHP <= 0.f)
 	{
 		Die();
@@ -154,10 +204,30 @@ void ACSRogueMonster::Die()
 		}
 	}
 
+	if (LastInstigator)
+	{
+		if (ACSPlayerController* PlayerController = Cast<ACSPlayerController>(LastInstigator))
+		{
+			if (UCS_WBP_HUD* HUD = PlayerController->GetHUDWidget())
+			{
+				PlayerController->AddKillCount();
+				PlayerController->AddScore(ScoreValue);
+				HUD->AddKillLogEntry(TEXT("Player"), GetName(), nullptr);
+				HUD->ShowKillConfirmMessage(TEXT("Kill!!"));
+			}
+		}
+	}
+
 	SetLifeSpan(5.0f);
 }
 
 void ACSRogueMonster::ResetOverlap()
 {
 	bIsOverlap = false;
+}
+
+void ACSRogueMonster::ShowFloatingDamage(int32 Value)
+{
+	// 간단한 디버그 로그 버전
+	UE_LOG(LogTemp, Warning, TEXT("[FloatingDamage] %d"), Value);
 }
