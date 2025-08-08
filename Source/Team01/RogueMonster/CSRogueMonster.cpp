@@ -37,9 +37,9 @@ ACSRogueMonster::ACSRogueMonster()
 	CloseRangeSpeed = 400.0;
 	ChaseSpeed = 600.0f;
 
-	SightRange = 1200.0f;
+	SightRange = 1500.0f;
 	AttackRange = 250.0f;
-	RangedAttackRange = 1200.0f;
+	RangedAttackRange = 1000.0f;
 
 	HPBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBarComponent"));
 	HPBarComponent->SetupAttachment(RootComponent);

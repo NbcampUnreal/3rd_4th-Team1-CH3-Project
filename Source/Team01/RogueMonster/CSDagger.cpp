@@ -18,7 +18,7 @@ ACSDagger::ACSDagger()
 
 	InitialLifeSpan = 1.0f;
 
-	Damage = 20.0f;
+	Damage = 10.0f;
 }
 
 void ACSDagger::BeginPlay()
