@@ -111,7 +111,7 @@ float ACSCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			{
 				if (UCS_WBP_EnemyHPBar* EnemyHP = Cast<UCS_WBP_EnemyHPBar>(Widget))
 				{
-					EnemyHP->SetHPBarPercent(CurrentHP / MaxHP);
+					EnemyHP->SetHP(CurrentHP, MaxHP);
 				}
 			}
 		}
