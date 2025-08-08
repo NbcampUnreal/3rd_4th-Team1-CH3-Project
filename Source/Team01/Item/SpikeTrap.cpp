@@ -3,6 +3,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "Team01/RogueMonster/CSRogueMonster.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "AIController.h"
 
 
 ASpikeTrap::ASpikeTrap()
@@ -36,9 +39,11 @@ void ASpikeTrap::BeginPlay()
 	TriggerZone->OnComponentBeginOverlap.AddDynamic(this, &ASpikeTrap::OnTriggerBegin);
 	TriggerZone->OnComponentEndOverlap.AddDynamic(this, &ASpikeTrap::OnTriggerEnd);
 
+	SpikeDamageZone->OnComponentBeginOverlap.AddDynamic(this, &ASpikeTrap::OnOverlapBegin);
+
 	StartLocation = SpikeMesh->GetRelativeLocation();
 	TargetLocation = StartLocation + SpikeOffset;
-	//Â÷ÀÌÈ®ÀÎ
+	//ï¿½ï¿½ï¿½ï¿½È®ï¿½ï¿½
 	//UE_LOG(LogTemp, Warning, TEXT("StartLocation: %s"), *StartLocation.ToString());
 	//UE_LOG(LogTemp, Warning, TEXT("TargetLocation: %s"), *TargetLocation.ToString());
 }
@@ -105,5 +110,35 @@ void ASpikeTrap::ApplyDamage()
 		//UE_LOG(LogTemp, Warning, TEXT("Player location: %s"), *Victim->GetActorLocation().ToString());
 
 		UGameplayStatics::ApplyDamage(Victim, DamageAmount, GetInstigatorController(), this, nullptr);
+	}
+}
+
+void ASpikeTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ACSRogueMonster* Monster = Cast<ACSRogueMonster>(OtherActor);
+	if (!Monster) return;
+
+	Monster->bIsOverlap = true;
+
+	Monster->GetWorldTimerManager().ClearTimer(Monster->OverlapResetTimerHandle);
+	Monster->GetWorldTimerManager().SetTimer(
+		Monster->OverlapResetTimerHandle,
+		Monster,
+		&ACSRogueMonster::ResetOverlap,
+		2.0f,
+		false
+	);
+
+	AAIController* AIController = Cast<AAIController>(Monster->GetController());
+	if (AIController)
+	{
+		AIController->StopMovement();
+
+		if (UPathFollowingComponent* PathComp = AIController->GetPathFollowingComponent())
+		{
+			PathComp->AbortMove(*this, FPathFollowingResultFlags::ForcedScript);
+		}
 	}
 }

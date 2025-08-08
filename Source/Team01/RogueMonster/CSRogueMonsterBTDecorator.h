@@ -11,6 +11,7 @@ enum class ERogueAIConditionType : uint8
 	IsAttacking,
 	IsRangeAttacking,
 	IsHit,
+	IsOverlap,
 	IsDetectedPlayer
 };
 

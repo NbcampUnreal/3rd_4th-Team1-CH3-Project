@@ -41,7 +41,8 @@ void UCSRogueMonsterBTService::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	const bool bDetectedPlayer = Distance <= Monster->SightRange;
 	Blackboard->SetValueAsBool(TEXT("DetectedPlayer"), bDetectedPlayer);
 
-
+	const bool bIsOverlap = Monster->bIsOverlap;
+	Blackboard->SetValueAsBool(TEXT("bIsOverlap"), bIsOverlap);
 
 	// 속도 전환
 	if (bInAttackRange)

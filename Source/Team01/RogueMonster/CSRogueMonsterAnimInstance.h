@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
 	bool bIsHit;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Monster|Animation")
+	bool bIsOverlap;
+
 	UPROPERTY()
 	class APawn* OwnerPawn;
 };

@@ -20,5 +20,6 @@ void UCSRogueMonsterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsAttack = Monster->bIsAttack;
 		bIsRangeAttack = Monster->bIsRangeAttack;
 		bIsHit = Monster->bIsHit;
+		bIsOverlap = Monster->bIsOverlap;
 	}
 }

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "CSRogueMonster.generated.h"
 
 UCLASS()
@@ -44,6 +45,9 @@ public:
 	float CloseRangeSpeed;
 
 	UPROPERTY(BlueprintReadOnly)
+	bool bIsOverlap;
+
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -64,14 +68,16 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ranged")
 	TSubclassOf<AActor> DaggerClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	UBehaviorTree* BehaviorTreeAsset;
+
 	UPROPERTY()
 	APawn* PlayerPawn;
 
 public:
 
 	UFUNCTION()
-	void OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-		AController* InstigatedBy, AActor* DamageCauser);
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyAttackDamage();
@@ -86,4 +92,9 @@ public:
 	void EndAttack();
 
 	void Die();
+
+	UFUNCTION()
+	void ResetOverlap();
+
+	FTimerHandle OverlapResetTimerHandle;
 };

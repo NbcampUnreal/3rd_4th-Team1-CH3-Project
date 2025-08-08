@@ -5,6 +5,7 @@
 #include "CSRogueMonsterAnimInstance.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/PawnSensingComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "AIController.h"
 #include "../Character/Controller/CSPlayerController.h"
 #include "CSDagger.h"
@@ -21,8 +22,9 @@ ACSRogueMonster::ACSRogueMonster()
 	bIsRangeAttack = false;
 	bIsHit = false;
 	bIsDetectedPlayer = false;
+	bIsOverlap = false;
 
-	MaxHP = 40.0f;
+	MaxHP = 150.0f;
 	CurrentHP = MaxHP;
 	HitDamage = 20.0f;
 	RangedHitDamage = 30.0f;
@@ -40,8 +42,6 @@ ACSRogueMonster::ACSRogueMonster()
 void ACSRogueMonster::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OnTakeAnyDamage.AddDynamic(this, &ACSRogueMonster::OnTakeDamage);
 
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 }
@@ -123,10 +123,21 @@ void ACSRogueMonster::EndAttack()
 	bIsRangeAttack = false;
 }
 
-void ACSRogueMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatedBy, AActor* DamageCauser)
+float ACSRogueMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (!bIsOverlap)
+	{
+		return 0.f;
+	}
 
+	CurrentHP -= DamageAmount;
+
+	if (CurrentHP <= 0.f)
+	{
+		Die();
+	}
+
+	return DamageAmount;
 }
 
 void ACSRogueMonster::Die()
@@ -144,4 +155,9 @@ void ACSRogueMonster::Die()
 	}
 
 	SetLifeSpan(5.0f);
+}
+
+void ACSRogueMonster::ResetOverlap()
+{
+	bIsOverlap = false;
 }

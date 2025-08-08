@@ -44,6 +44,9 @@ bool UCSRogueMonsterBTDecorator::CalculateRawConditionValue(UBehaviorTreeCompone
 	case ERogueAIConditionType::IsDetectedPlayer:
 		return Monster->bIsDetectedPlayer;
 
+	case ERogueAIConditionType::IsOverlap:
+		return !Monster->bIsOverlap;
+
 	default:
 		return false;
 	}
