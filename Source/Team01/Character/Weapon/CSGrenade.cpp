@@ -31,10 +31,11 @@ ACSGrenade::ACSGrenade()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
 	ProjectileMovement->Bounciness = 0.5f;
-	ProjectileMovement->ProjectileGravityScale = 1.f;
+	ProjectileMovement->ProjectileGravityScale = 0.5f;
 
 	ExplosionRadius = 500.f;
-	Damage = 30.f;
+	BaseDamage = 30.f;
+	MaxDamage = 100.f;
 	ExplosionDelay = 3.f;
 
 }
@@ -84,7 +85,7 @@ void ACSGrenade::Explode()
 
 	UGameplayStatics::ApplyRadialDamage(
 		this,								// DamageCauser
-		Damage,								// 폭발 중심 데미지
+		MaxDamage,								// 폭발 중심 데미지
 		GetActorLocation(),					// 폭발 원점
 		ExplosionRadius,					// 폭발 반경
 		UDamageType::StaticClass(),			// 데미지 타입: 기본

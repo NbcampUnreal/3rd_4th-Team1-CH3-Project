@@ -44,7 +44,9 @@ public:
 	float ExplosionRadius;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
-	float Damage;
+	float BaseDamage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
+	float MaxDamage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
 	float ExplosionDelay;

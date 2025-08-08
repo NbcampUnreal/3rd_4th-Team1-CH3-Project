@@ -254,7 +254,7 @@ void ACSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		EnhancedInputComponent->BindAction(
 			PlayerCharacterInputConfig->Grenade,
-			ETriggerEvent::Triggered,
+			ETriggerEvent::Started,
 			this,
 			&ThisClass::GrabGrenade
 		);
@@ -980,6 +980,7 @@ bool ACSPlayerCharacter::AddGrenade(int32 Amount)
 
 void ACSPlayerCharacter::GrabGrenade(const FInputActionValue& InValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Start to Grenade Set"));
 	if (IsValid(CurrentHeldGrenade) || GrenadeCount <= 0 || !IsValid(GrenadeClass))
 	{
 		return;
@@ -1024,32 +1025,50 @@ void ACSPlayerCharacter::GrabGrenade(const FInputActionValue& InValue)
 			AnimInstance->Montage_Play(GrabGrenadeMontage);
 		}
 		GrenadeCount--;
+		UE_LOG(LogTemp, Warning, TEXT("Grenade Set"));
 	}
 }
 
 void ACSPlayerCharacter::ThrowGrenade(const FInputActionValue& InValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Start to Grenade Throw"));
 	if (!IsValid(CurrentHeldGrenade))
 	{
 		return;
 	}
 
+	if (!IsValid(CurrentHeldGrenade->ProjectileMovement) || !IsValid(CurrentHeldGrenade->Collision))
+	{
+		return;
+	}
+
+	FRotator ThrowRotation = GetControlRotation();
+	FVector ThrowForwardVector = ThrowRotation.Vector();
+	FVector HandSocketLocation = GetMesh()->GetSocketLocation(TEXT("hand_r_ability_socket"));
+
+	float ForwardOffset = 30.f;
+	float RightOffset = -30.f;
+
+	FVector GrenadeStartLocation =
+		HandSocketLocation
+		+ ThrowForwardVector * ForwardOffset
+		+ UKismetMathLibrary::GetRightVector(ThrowRotation) * RightOffset;
+
+	CurrentHeldGrenade->SetActorLocation(GrenadeStartLocation);
+	CurrentHeldGrenade->SetActorRotation(ThrowRotation);
+
 	CurrentHeldGrenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-	if (IsValid(CurrentHeldGrenade->ProjectileMovement))
+	CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(CurrentHeldGrenade->Collision);
+	CurrentHeldGrenade->ProjectileMovement->Activate();
+
+	FVector LaunchVelocity = ThrowForwardVector * CurrentHeldGrenade->ProjectileMovement->InitialSpeed;
+	CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(LaunchVelocity);
+
+	if (IsValid(CurrentHeldGrenade->Collision))
 	{
-		CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(CurrentHeldGrenade->Collision);
-		CurrentHeldGrenade->ProjectileMovement->Activate();
-
-		FRotator ThrowRotation = GetControlRotation();	// 카메라 방향
-		FVector LaunchVelocity = ThrowRotation.Vector() * CurrentHeldGrenade->ProjectileMovement->InitialSpeed;
-		CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(LaunchVelocity);
-
-		if (IsValid(CurrentHeldGrenade->Collision))
-		{
-			CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Block);
-		}
+		CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Block);
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -1060,6 +1079,7 @@ void ACSPlayerCharacter::ThrowGrenade(const FInputActionValue& InValue)
 
 	CurrentHeldGrenade->Throw();
 	CurrentHeldGrenade = nullptr;
+	UE_LOG(LogTemp, Warning, TEXT("Grenade Throw"));
 }
 
 void ACSPlayerCharacter::TryActivateNearbyItem()
