@@ -321,6 +321,8 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	{
 		CurrentHP -= FinalDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
+
+		ShowFloatingDamage(FMath::RoundToInt(FinalDamage));
 		
 		if (HPBarComponent)
 		{

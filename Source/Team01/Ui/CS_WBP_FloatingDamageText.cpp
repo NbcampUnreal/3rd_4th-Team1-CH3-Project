@@ -6,8 +6,13 @@ void UCS_WBP_FloatingDamageText::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	if (DamageAnim)
+	{
+		PlayAnimation(DamageAnim);
+	}
+	
 	// 기본 데미지 텍스트를 "0"으로 설정
-	if (Damage)
+	if (Damage && Damage->GetText().IsEmpty())
 	{
 		Damage->SetText(FText::FromString(TEXT("0")));
 	}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "../UI/CS_WBP_FloatingDamageText.h"
 #include "GameFramework/Character.h"
 #include "CSCharacterBase.generated.h"
 
@@ -114,4 +115,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetScoreValue(int32 NewScore) { ScoreValue = NewScore; }
 #pragma endregion score
+#pragma region dam
+public:
+	// 데미지 텍스트 표시 함수
+	void ShowFloatingDamage(int32 DamageValue);
+
+protected:
+	// 위젯 클래스 (자식들이 에디터에서 설정 가능)
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UCS_WBP_FloatingDamageText> FloatingDamageWidgetClass;
+#pragma endregion dam
 };

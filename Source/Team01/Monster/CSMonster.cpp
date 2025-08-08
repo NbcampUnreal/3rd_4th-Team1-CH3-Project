@@ -148,6 +148,8 @@ void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageT
 
 	CurrentHP -= Damage;
 
+	ShowFloatingDamage(FMath::RoundToInt(Damage));
+	
 	if (HPBarComponent)
 	{
 		HPBarComponent->SetVisibility(true);

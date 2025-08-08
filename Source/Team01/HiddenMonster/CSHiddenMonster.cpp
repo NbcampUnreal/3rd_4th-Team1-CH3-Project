@@ -178,6 +178,8 @@ void ACSHiddenMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UD
 {
 	CurrentHP -= Damage;
 
+	ShowFloatingDamage(FMath::RoundToInt(Damage));
+	
 	if (HPBarComponent)
 	{
 		HPBarComponent->SetVisibility(true);

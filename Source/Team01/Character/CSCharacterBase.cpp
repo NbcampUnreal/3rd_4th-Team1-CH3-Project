@@ -2,7 +2,9 @@
 #include "../Character/Controller/CSPlayerController.h"
 #include "../UI/CS_WBP_EnemyHPBar.h"
 #include "../Ui/CS_WBP_HUD.h"
+#include "../Ui/CS_WBP_FloatingDamageText.h"
 #include "Animation/CSPlayerAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -101,6 +103,8 @@ float ACSCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 
 	if (!IsPlayerControlled())
 	{
+		ShowFloatingDamage(FinalDamageAmount);
+		
 		if (UWidgetComponent* WidgetComp = FindComponentByClass<UWidgetComponent>())
 		{
 			if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject())
@@ -142,4 +146,33 @@ void ACSCharacterBase::HandleOnPostDead()
 	}
 	
 	SetLifeSpan(0.1f);
+}
+
+void ACSCharacterBase::ShowFloatingDamage(int32 DamageValue)
+{
+	if (!FloatingDamageWidgetClass) return;
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PC) return;
+
+	UCS_WBP_FloatingDamageText* DamageWidget = CreateWidget<UCS_WBP_FloatingDamageText>(PC, FloatingDamageWidgetClass);
+	if (!DamageWidget) return;
+
+	DamageWidget->SetDamage(DamageValue);
+	DamageWidget->AddToViewport();
+	
+	FVector2D FixedScreenPosition(1000.f, 300.f); 
+	DamageWidget->SetPositionInViewport(FixedScreenPosition, false);
+
+
+	FTimerHandle RemoveTimer;
+	FTimerDelegate RemoveDelegate;
+	RemoveDelegate.BindLambda([=]()
+	{
+		if (DamageWidget)
+		{
+			DamageWidget->RemoveFromParent();
+		}
+	});
+	PC->GetWorldTimerManager().SetTimer(RemoveTimer, RemoveDelegate, 1.0f, false);
 }
