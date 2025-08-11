@@ -106,4 +106,20 @@ public:
 	int32 GetScore() const { return Score; }
 	
 #pragma endregion KillCount
+
+#pragma region mouse
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mouse")
+	float MouseSensitivity = 1.0f; // 감도 기본값
+
+	UFUNCTION(BlueprintCallable, Category="Mouse")
+	void SetMouseSensitivity(float In) { MouseSensitivity = In; }
+
+	UFUNCTION(BlueprintPure, Category="Mouse")
+	float GetMouseSensitivity() const { return MouseSensitivity; }
+
+protected:
+	virtual void AddYawInput(float Val) override { Super::AddYawInput(Val * MouseSensitivity); }
+	virtual void AddPitchInput(float Val) override { Super::AddPitchInput(Val * MouseSensitivity); }
+#pragma endregion mouse
 };

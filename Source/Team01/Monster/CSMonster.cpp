@@ -145,8 +145,7 @@ void ACSMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageT
 	}
 	
 	bIsHit = true;
-
-	CurrentHP -= Damage;
+	
 
 	ShowFloatingDamage(FMath::RoundToInt(Damage));
 	
