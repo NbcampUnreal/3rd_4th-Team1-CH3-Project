@@ -285,17 +285,23 @@ public:
 	UFUNCTION(blueprintcallable, Category = "Grenade")
 	bool AddGrenade(int32 Amount);
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
+	UStaticMesh* GrenadeVisualMesh;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grenade")
 	TSubclassOf<ACSGrenade> GrenadeClass;
+
+	UPROPERTY()
+	UStaticMeshComponent* HeldGrenadeVisualComponent;
 
 	UFUNCTION()
 	void GrabGrenade(const FInputActionValue& InValue);
 	UFUNCTION()
 	void ThrowGrenade(const FInputActionValue& InValue);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grenade")
-	ACSGrenade* CurrentHeldGrenade;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grenade")
+	// ACSGrenade* CurrentHeldGrenade;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UAnimMontage* GrabGrenadeMontage;

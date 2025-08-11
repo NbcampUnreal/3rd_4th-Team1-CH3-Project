@@ -26,17 +26,17 @@ ACSGrenade::ACSGrenade()
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	ProjectileMovement->UpdatedComponent = Collision;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 2000.f;
+	ProjectileMovement->MaxSpeed = 2000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
-	ProjectileMovement->Bounciness = 0.5f;
+	ProjectileMovement->Bounciness = 0.25f;
 	ProjectileMovement->ProjectileGravityScale = 0.5f;
 
 	ExplosionRadius = 500.f;
 	BaseDamage = 30.f;
 	MaxDamage = 100.f;
-	ExplosionDelay = 3.f;
+	ExplosionDelay = 2.5f;
 
 }
 
@@ -44,17 +44,7 @@ ACSGrenade::ACSGrenade()
 void ACSGrenade::BeginPlay()
 {
 	Super::BeginPlay();
-	
-}
 
-// void ACSGrenade::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-// 	FVector NormalImpulse, const FHitResult& Hit)
-// {
-// 	
-// }
-
-void ACSGrenade::Throw()
-{
 	GetWorldTimerManager().SetTimer(
 		ExplosionTimerHandle,
 		this,
@@ -63,6 +53,17 @@ void ACSGrenade::Throw()
 		false
 	);
 }
+
+// void ACSGrenade::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+// 	FVector NormalImpulse, const FHitResult& Hit)
+// {
+// 	
+// }
+
+// void ACSGrenade::Throw()
+// {
+// 	
+// }
 
 void ACSGrenade::Explode()
 {

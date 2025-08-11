@@ -981,104 +981,88 @@ bool ACSPlayerCharacter::AddGrenade(int32 Amount)
 void ACSPlayerCharacter::GrabGrenade(const FInputActionValue& InValue)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start to Grenade Set"));
-	if (IsValid(CurrentHeldGrenade) || GrenadeCount <= 0 || !IsValid(GrenadeClass))
+	if (IsValid(HeldGrenadeVisualComponent) || GrenadeCount <= 0 || !IsValid(GrenadeClass))
 	{
 		return;
 	}
 	
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = GetInstigator();
-
-	FVector SpawnLocation = GetActorLocation();
-	FRotator SpawnRotation = GetActorRotation();
-
-	CurrentHeldGrenade = GetWorld()->SpawnActor<ACSGrenade>(GrenadeClass, SpawnLocation, SpawnRotation, SpawnParams);
-
-	if (IsValid(CurrentHeldGrenade))
+	HeldGrenadeVisualComponent = NewObject<UStaticMeshComponent>(this, TEXT("HeldGrenadeVisual"));
+	if (IsValid(HeldGrenadeVisualComponent))
 	{
+		HeldGrenadeVisualComponent->RegisterComponent();	// 컴포넌트 등록
+		HeldGrenadeVisualComponent->SetStaticMesh(GrenadeVisualMesh);	// 수류탄 메시 할당
+		HeldGrenadeVisualComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);	// 충돌 X
+
+		HeldGrenadeVisualComponent->SetCastShadow(true);
+
 		if (IsValid(GetMesh()))
 		{
-			CurrentHeldGrenade->AttachToComponent(
+			HeldGrenadeVisualComponent->AttachToComponent(
 				GetMesh(),
 				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 				TEXT("hand_r_ability_socket")
 			);
 		}
-
-		if (IsValid(CurrentHeldGrenade->ProjectileMovement))
-		{
-			// 바로 날아가지 않도록 수류탄 이동 비활성화
-			CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(FVector::ZeroVector);
-			CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(nullptr);
-			CurrentHeldGrenade->ProjectileMovement->Deactivate();
-		}
-		if (IsValid(CurrentHeldGrenade->Collision))
-		{
-			CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Overlap);
-		}
-
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (IsValid(AnimInstance) && IsValid(GrabGrenadeMontage))
-		{
-			AnimInstance->Montage_Play(GrabGrenadeMontage);
-		}
-		GrenadeCount--;
-		UE_LOG(LogTemp, Warning, TEXT("Grenade Set"));
+		
 	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (IsValid(AnimInstance) && IsValid(GrabGrenadeMontage))
+	{
+		AnimInstance->Montage_Play(GrabGrenadeMontage);
+	}
+	GrenadeCount--;
+	UE_LOG(LogTemp, Warning, TEXT("Grenade Set"));
+	
 }
 
 void ACSPlayerCharacter::ThrowGrenade(const FInputActionValue& InValue)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start to Grenade Throw"));
-	if (!IsValid(CurrentHeldGrenade))
+	if (IsValid(HeldGrenadeVisualComponent))	// 수류탄 쥐고있으면 삭제
+	{
+		HeldGrenadeVisualComponent->DestroyComponent();
+		HeldGrenadeVisualComponent = nullptr;
+	}
+	else    // 애초에 안쥐고 있으면 return
 	{
 		return;
 	}
 
-	if (!IsValid(CurrentHeldGrenade->ProjectileMovement) || !IsValid(CurrentHeldGrenade->Collision))
-	{
-		return;
-	}
-
-	FRotator ThrowRotation = GetControlRotation();
+	FRotator ThrowRotation = GetControlRotation();    // 현재 카메라,조준선 방향 
 	FVector ThrowForwardVector = ThrowRotation.Vector();
 	FVector HandSocketLocation = GetMesh()->GetSocketLocation(TEXT("hand_r_ability_socket"));
 
-	float ForwardOffset = 30.f;
-	float RightOffset = -30.f;
-
-	FVector GrenadeStartLocation =
-		HandSocketLocation
-		+ ThrowForwardVector * ForwardOffset
-		+ UKismetMathLibrary::GetRightVector(ThrowRotation) * RightOffset;
-
-	CurrentHeldGrenade->SetActorLocation(GrenadeStartLocation);
-	CurrentHeldGrenade->SetActorRotation(ThrowRotation);
-
-	CurrentHeldGrenade->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-	CurrentHeldGrenade->ProjectileMovement->SetUpdatedComponent(CurrentHeldGrenade->Collision);
-	CurrentHeldGrenade->ProjectileMovement->Activate();
-
-	FVector LaunchVelocity = ThrowForwardVector * CurrentHeldGrenade->ProjectileMovement->InitialSpeed;
-	CurrentHeldGrenade->ProjectileMovement->SetVelocityInLocalSpace(LaunchVelocity);
-
-	if (IsValid(CurrentHeldGrenade->Collision))
+	FVector GrenadeStartLocation = HandSocketLocation
+								 + ThrowForwardVector * 70.f
+								 + UKismetMathLibrary::GetRightVector(ThrowRotation) * 50.f
+								 + UKismetMathLibrary::GetUpVector(ThrowRotation) * 10.f;
+	
+	if (IsValid(GrenadeClass))
 	{
-		CurrentHeldGrenade->Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		CurrentHeldGrenade->Collision->SetCollisionResponseToAllChannels(ECR_Block);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		ACSGrenade* Grenade =
+			GetWorld()->SpawnActor<ACSGrenade>(GrenadeClass, GrenadeStartLocation, ThrowRotation, SpawnParams);
+
+		if (IsValid(Grenade) && IsValid(Grenade->ProjectileMovement))
+		{
+			FVector LaunchVelocity =
+				ThrowForwardVector * Grenade->ProjectileMovement->InitialSpeed;
+			Grenade->ProjectileMovement->SetVelocityInLocalSpace(LaunchVelocity);
+		}
 	}
+
+	//DrawDebugLine(GetWorld(), GrenadeStartLocation, GrenadeStartLocation + ThrowForwardVector * 1000.f, FColor::Red, false, 5.f, 0, 5.f);
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (IsValid(AnimInstance) && IsValid(ThrowGrenadeMontage))
 	{
 		AnimInstance->Montage_Play(ThrowGrenadeMontage);
 	}
-
-	CurrentHeldGrenade->Throw();
-	CurrentHeldGrenade = nullptr;
+	
 	UE_LOG(LogTemp, Warning, TEXT("Grenade Throw"));
 }
 
