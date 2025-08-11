@@ -48,6 +48,10 @@ void ACSBossMonster::BeginPlay()
 	if (UUserWidget* Widget = HPBarComponent->GetUserWidgetObject())
 	{
 		HPBar = Cast<UCS_WBP_EnemyHPBar>(Widget);
+		if (HPBar)
+		{
+			HPBar->SetHP(CurrentHP, MaxHP);
+		}
 	}
 
 	DefaultGravityScale = GetCharacterMovement()->GravityScale;
@@ -404,7 +408,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 			}
 		}
 
-		CurrentHP -= FinalDamage;
+		
 		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
 
 		ShowFloatingDamage(FMath::RoundToInt(FinalDamage));
@@ -425,7 +429,7 @@ float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 		if (HPBar)
 		{
-			HPBar->UpdateHP(CurrentHP / MaxHP);
+			HPBar->SetHP(CurrentHP, MaxHP);
 		}
 
 		if (!bIsInPhase2 && (CurrentHP / MaxHP <= 0.5f))
@@ -535,6 +539,20 @@ void ACSBossMonster::Die()
 
 	SetCurrentState(ECharacterState::Dead);
 
+	if (HPBar)
+	{
+		HPBar->SetHP(0.f, MaxHP);  // ※ UpdateHP 말고 SetHP 사용
+	}
+
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(true);
+		GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+		{
+			if (HPBarComponent) HPBarComponent->SetVisibility(false);
+		}, 0.2f, false);
+	}
 	// 캡슐 컴포넌트의 충돌을 꺼서 죽은 뒤에 시체가 다른 액터를 막지 않도록 합니다.
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -566,7 +584,7 @@ void ACSBossMonster::Die()
 	{
 		GS->SetMissionState(EMissionState::MissionClear);
 	}
-
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		DeathTimerHandle,
 		this,

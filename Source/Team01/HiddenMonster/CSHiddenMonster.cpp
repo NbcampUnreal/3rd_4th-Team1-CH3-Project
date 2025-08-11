@@ -176,7 +176,6 @@ void ACSHiddenMonster::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp,
 
 void ACSHiddenMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	CurrentHP -= Damage;
 
 	ShowFloatingDamage(FMath::RoundToInt(Damage));
 	
