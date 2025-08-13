@@ -382,105 +382,106 @@ void ACSBossMonster::ApplyGroundSlamDamage()
 //데미지를 받았을 때 호출될 함수
 float ACSBossMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (GetCurrentState() == ECharacterState::Shouting || GetCurrentState() == ECharacterState::PhaseTransition)
+	//이미 죽었거나, 페이즈 전환 같은 무적 상태일 때는 데미지X
+	if (GetCurrentState() == ECharacterState::Dead || GetCurrentState() == ECharacterState::Shouting || GetCurrentState() == ECharacterState::PhaseTransition)
 	{
 		return 0.0f;
 	}
 
-	const float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	const float FinalDamage = Super::Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	//유효한 데미지가 아니라면 즉시 종료
+	if (FinalDamage <= 0.f)
+	{
+		return 0.0f;
+	}
+
+	CurrentHP = FMath::Clamp(CurrentHP - FinalDamage, 0.f, MaxHP);
 
 	LastInstigator = EventInstigator;
 
-	if (FinalDamage > 0.f && GetCurrentState() != ECharacterState::Dead)
+	// --- 어그로 획득, 데미지 숫자, HP 바 표시는 항상 실행 ---
+	ShowFloatingDamage(FMath::RoundToInt(FinalDamage));
+
+	if (DamageCauser && DamageCauser->IsA(ACSPlayerCharacter::StaticClass()))
 	{
-		// 1. 데미지를 준 대상이 '플레이어'인지 확인합니다.
-		if (DamageCauser && DamageCauser->IsA(ACSPlayerCharacter::StaticClass()))
+		if (AAIController* AICon = Cast<AAIController>(GetController()))
 		{
-			// 2. AI 컨트롤러와 블랙보드를 가져옵니다.
-			if (AAIController* AICon = Cast<AAIController>(GetController()))
+			if (UBlackboardComponent* BlackboardComp = AICon->GetBlackboardComponent())
 			{
-				if (UBlackboardComponent* BlackboardComp = AICon->GetBlackboardComponent())
-				{
-					// 3. 블랙보드의 bHasBeenAlerted 키를 true로 강제로 바꿔버립니다.
-					BlackboardComp->SetValueAsBool(TEXT("bHasBeenAlerted"), true);
-					UE_LOG(LogTemp, Warning, TEXT("Boss has been alerted by taking damage!"));
-				}
+				BlackboardComp->SetValueAsBool(TEXT("bHasBeenAlerted"), true);
 			}
 		}
+	}
 
-		
-		UE_LOG(LogTemp, Warning, TEXT("Boss took %f damage, Current Health: %f"), FinalDamage, CurrentHP);
-
-		ShowFloatingDamage(FMath::RoundToInt(FinalDamage));
-
-		if (HPBarComponent)
-		{
-			HPBarComponent->SetVisibility(true);
-
-			GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
-			GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+	if (HPBarComponent)
+	{
+		HPBarComponent->SetVisibility(true);
+		GetWorld()->GetTimerManager().ClearTimer(HPHideTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(HPHideTimerHandle, [this]()
+			{
+				if (HPBarComponent && GetCurrentState() != ECharacterState::Dead)
 				{
-					if (HPBarComponent && GetCurrentState() != ECharacterState::Dead)
-					{
-						HPBarComponent->SetVisibility(false);
-					}
-				}, 3.0f, false);
-		}
+					HPBarComponent->SetVisibility(false);
+				}
+			}, 3.0f, false);
+	}
+	if (HPBar)
+	{
+		HPBar->SetHP(CurrentHP, MaxHP);
+	}
 
-		if (HPBar)
-		{
-			HPBar->SetHP(CurrentHP, MaxHP);
-		}
-
+	//죽었는지 최우선으로 확인
+	if (CurrentHP <= 0.f)
+	{
+		Die(); // 체력이 0 이하면 Die()를 호출
+	}
+	//죽지 않았다면, 그 다음에 다른 상태 변화를 확인
+	else
+	{
+		//2페이즈 전환 조건 확인
 		if (!bIsInPhase2 && (CurrentHP / MaxHP <= 0.5f))
 		{
-			bIsPhaseTransitionPending = true; // 2페이즈 진입 플래그
+			bIsPhaseTransitionPending = true;
 		}
 
-		if (CurrentHP <= 0.f)
+		//피격 애니메이션 조건 확인 (슈퍼아머 상태가 아닐 때)
+		if (GetCurrentState() != ECharacterState::Attacking && GetCurrentState() != ECharacterState::Charging && !bIsInPhase2)
 		{
-			Die();
-		}
-		else
-		{
-			// 공격 중일 때는 피격 애니메이션을 재생하지 않도록 슈퍼아머 상태
-			if (GetCurrentState() != ECharacterState::Attacking && !bIsInPhase2) // 페이즈 2가 아닐때 라는 조건 추가
+			SetCurrentState(ECharacterState::HitReaction);
+			GetCharacterMovement()->StopMovementImmediately();
+			if (ACSBossAIController* AIController = Cast<ACSBossAIController>(GetController()))
 			{
-				SetCurrentState(ECharacterState::HitReaction);
-				GetCharacterMovement()->StopMovementImmediately();
-
-				ACSBossAIController* AIController = Cast<ACSBossAIController>(GetController());
-				if (AIController)
-				{
-					AIController->StopMovement();
-				}
-
-
-				UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-				if (AnimInstance && HitReactMontage)
+				AIController->StopMovement();
+			}
+			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+			{
+				if (HitReactMontage)
 				{
 					AnimInstance->Montage_Play(HitReactMontage);
-
-					// 몽타주가 끝나면 다시 Idle 상태로 돌아오도록 설정합니다.
 					FOnMontageEnded MontageEndedDelegate;
 					MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted) {
 						if (!bInterrupted)
 						{
 							SetCurrentState(ECharacterState::Idle);
+							TryStateTransition();
 						}
 						});
 					AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, HitReactMontage);
 				}
 			}
 		}
+
+		//아직 죽지 않았을 때만 2페이즈 전환을 시도
+		TryStateTransition();
 	}
-	TryStateTransition();
+
 	return FinalDamage;
 }
 
 void ACSBossMonster::EnterPhase2()
 {
-	if (bIsInPhase2) return; // 이미 2페이즈라면 중복 실행 방지
+	if (bIsInPhase2 || GetCurrentState() == ECharacterState::Dead) return; // 이미 2페이즈라면 중복 실행 방지
 	bIsInPhase2 = true;
 	SetCurrentState(ECharacterState::PhaseTransition);
 	UE_LOG(LogTemp, Error, TEXT("Boss is entering PHASE 2!"));
@@ -535,6 +536,8 @@ void ACSBossMonster::TryStateTransition() // 하고 있던 일이 끝나는 시�
 //사망 처리 함수
 void ACSBossMonster::Die()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Boss Die!!!!!!!!!!!!!!!!!!!!!"));
+
 	if (GetCurrentState() == ECharacterState::Dead) return;
 
 	SetCurrentState(ECharacterState::Dead);
