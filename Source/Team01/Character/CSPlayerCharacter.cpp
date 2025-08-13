@@ -309,6 +309,14 @@ void ACSPlayerCharacter::InputLook(const FInputActionValue& InValue)
 	{
 		FVector2D LookVector = InValue.Get<FVector2D>();
 
+		const FVector2D Look = InValue.Get<FVector2D>();
+		
+		float Sensi = 1.f;
+		if (ACSPlayerController* PC = Cast<ACSPlayerController>(GetController()))
+		{
+			Sensi = PC->MouseSensitivity;
+		}
+		
 		AddControllerYawInput(LookVector.X);
 		AddControllerPitchInput(LookVector.Y);	
 	}

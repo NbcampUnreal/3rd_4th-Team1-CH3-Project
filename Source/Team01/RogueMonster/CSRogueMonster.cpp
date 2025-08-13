@@ -47,7 +47,7 @@ ACSRogueMonster::ACSRogueMonster()
 	HPBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	HPBarComponent->SetDrawSize(FVector2D(150.f, 20.f));
 	HPBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
-	bAlwaysShowHPBar = true;
+	HPBarComponent->SetVisibility(false);
 
 	ScoreValue = 100;
 

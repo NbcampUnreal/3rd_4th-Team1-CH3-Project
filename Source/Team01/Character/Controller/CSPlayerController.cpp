@@ -41,6 +41,8 @@ void ACSPlayerController::BeginPlay()
 	{
 		CreateHUD();
 	}
+
+	
 }
 
 void ACSPlayerController::CreateHUD()
@@ -287,7 +289,7 @@ void ACSPlayerController::AddKillCount()
 	}
 	
 	// 포탈 생성 조건 검사
-	if (!bPortalSpawned && KillCount >= 9 && PortalToSpawn)
+	if (!bPortalSpawned && KillCount >= 16 && PortalToSpawn)
 	{
 		GetWorld()->SpawnActor<AActor>(PortalToSpawn, PortalSpawnLocation, FRotator::ZeroRotator);
 		bPortalSpawned = true;

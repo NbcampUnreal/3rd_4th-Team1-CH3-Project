@@ -16,7 +16,7 @@ FString ACSGameStateBase::GetMissionText(EMissionState State, int32 KillCount)
 	switch (State)
 	{
 	case EMissionState::KillEnemies:
-		return FString::Printf(TEXT("적을 처치하십시오 (%d / 15)"), KillCount);
+		return FString::Printf(TEXT("적을 처치하십시오 (%d / 16)"), KillCount);
 	case EMissionState::BossFight:
 		return TEXT("보스를 처치하십시오");
 	case EMissionState::MissionClear:

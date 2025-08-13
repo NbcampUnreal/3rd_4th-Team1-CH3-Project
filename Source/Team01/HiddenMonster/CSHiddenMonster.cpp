@@ -176,7 +176,8 @@ void ACSHiddenMonster::OnConeEndOverlap(UPrimitiveComponent* OverlappedComp,
 
 void ACSHiddenMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-
+	CurrentHP -= Damage;
+	
 	ShowFloatingDamage(FMath::RoundToInt(Damage));
 	
 	if (HPBarComponent)
@@ -195,7 +196,8 @@ void ACSHiddenMonster::OnTakeDamage(AActor* DamagedActor, float Damage, const UD
 	
 	if (HPBar)
 	{
-		HPBar->UpdateHP(CurrentHP / MaxHP);
+		const float Ratio = (MaxHP > 0.f) ? (CurrentHP / MaxHP) : 0.f;
+		HPBar->UpdateHP(Ratio);
 	}
 	
 	LastInstigator = InstigatedBy;
