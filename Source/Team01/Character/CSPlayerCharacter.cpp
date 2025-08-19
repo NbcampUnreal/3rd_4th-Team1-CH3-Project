@@ -88,7 +88,7 @@ ACSPlayerCharacter::ACSPlayerCharacter()
 
 	MaxHP = 100.f;
 	CurrentHP = MaxHP;
-	AttackDamage = 10.f;
+	AttackDamage = 500.f;
 	
 	MaxBullet = 6;
 	Bullet = MaxBullet;
@@ -650,7 +650,7 @@ void ACSPlayerCharacter::ProcessHit(const FHitResult& HitResult)
         FDamageEvent DamageEvent;
         FString BoneNameString = HitResult.BoneName.ToString();
         
-        DrawDebugSphere(GetWorld(), HitResult.Location, 3.f, 16, FColor(255,0,0,255), true, 20.f, 0U, 5.f);
+        //DrawDebugSphere(GetWorld(), HitResult.Location, 3.f, 16, FColor(255,0,0,255), true, 20.f, 0U, 5.f);
         
         if (BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase))
         {
